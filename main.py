@@ -18,7 +18,7 @@ class Lol:
     obtw_keyword = '^OBTW$'
     tldr_keyword = '^TLDR$'
     iHasA_keyword = '\\bI HAS A\\b' 
-    itz_keyword = '^ITZ$'
+    itz_keyword = '\\bITZ\\b'
     r_keyword = '^R$'
     sumOf_keyword = '^SUM OF$'
     diffOf_keyword = '^DIFF OF$'
@@ -73,12 +73,101 @@ class Lol:
             hai_result = re.search(self.hai_keyword,content[i])
             iHasA_result = re.search(self.iHasA_keyword,content[i])
             itz_result = re.search(self.itz_keyword,content[i])
-            yarn_result = re.search(self.yarn_literal,content[i])
+            visible_result = re.search(self.visible_keyword,content[i])
+            kthx_result = re.search(self.kthxbye_keyword,content[i])
             
-            if(yarn_result):
-                result = yarn_result.group()
-                print(result[1:len(result)-1])
+            # HAI
+            if(hai_result):
+                print(hai_result.group())
+            
+            # I HAS A
+            if(iHasA_result): 
+                print(iHasA_result.group())
+                var_word = content[i].split()
+                var_word = var_word[3:]
+                var_word = " ".join(var_word)
+                
+                # var
+                var_result = re.search(self.variable_identifier,var_word)
+                if(var_result):
+                    print(var_result.group())
 
+                    val_declaration = var_word.split()
+                    val_declaration = val_declaration[1:]
+                    val_declaration = " ".join(val_declaration)
+                    
+                    # ITZ
+                    itz_result = re.search(self.itz_keyword,val_declaration)
+                    if(itz_result):
+                        print(itz_result.group())
+
+                        value = val_declaration.split()
+                        value = value[1:]
+                        value = " ".join(value)
+                        
+                        # 12
+                        numbr_result = re.search(self.numbr_literal,value)
+                        numbar_result = re.search(self.numbar_literal,value)
+                        yarn_result = re.search(self.yarn_literal,value)
+                        troof_result = re.search(self.troof_literal,value)
+                        type_result = re.search(self.type_literal,value)
+                        
+                        if(numbr_result):
+                            print(numbr_result.group())
+                        if(numbar_result):
+                            print(numbar_result.group())
+                        if(yarn_result):
+                            print(yarn_result.group())
+                        if(troof_result):
+                            print(troof_result.group())
+                        if(type_result):
+                            print(type_result.group())
+            # VISIBLE
+            if(visible_result):
+                print(visible_result.group())
+
+                value = content[i].split()
+                value = value[1:]
+                value = " ".join(value)
+                # Naka while kasi pwedeng magprint ng multiple variables
+                while(value):    
+                    numbr_result = re.search(self.numbr_literal,value)
+                    numbar_result = re.search(self.numbar_literal,value)
+                    yarn_result = re.search(self.yarn_literal,value)
+                    troof_result = re.search(self.troof_literal,value)
+                    type_result = re.search(self.type_literal,value)
+                    var_result = re.search(self.variable_identifier,var_word)
+                    
+                    if(numbr_result):
+                        print(numbr_result.group())
+                    if(numbar_result):
+                        print(numbar_result.group())
+                    if(yarn_result):
+                        string_literal = yarn_result.group()
+                        print(string_literal[0])
+                        print(string_literal[1:-1])
+                        print(string_literal[-1])
+                    if(troof_result):
+                        print(troof_result.group())
+                    if(type_result):
+                        print(type_result.group())
+                    if(var_result):
+                        print(var_result.group())
+
+                    
+                    value = value.split()
+                    value = value[1:]
+                    if value:
+                        value = None
+                    else:    
+                        value = " ".join(value)
+            
+            # KTHXBYE
+            if(kthx_result):
+                print(kthx_result.group())
+                    
+                    
+                    
 
 
 code = Lol()
