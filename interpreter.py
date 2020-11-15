@@ -51,7 +51,6 @@ token_expressions = [
   (r"^(WIN|FAIL)\s", "TROOF_LITERAL"),
   (r"^(NOOB|NUMBR|NUMBAR|YARN|TROOF)\s", "TYPE_LITERAL"),
   (r"^[a-zA-Z][a-zA-Z0-9_]*\s", "IDENTIFIER"),
-
 ]
 
 def lex(text, token_expressions):
@@ -77,7 +76,7 @@ def lex(text, token_expressions):
     line_number += 1
   return tokens
 
-file = open("input.lol", "r")
+file = open("sample.lol", "r")
 text = file.read()
 
 print(lex(text, token_expressions))
