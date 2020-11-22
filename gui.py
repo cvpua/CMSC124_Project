@@ -9,15 +9,16 @@ def execute():
 
 def upload():
 	# for aaron's directory
-	lol = filedialog.askopenfilename(initialdir="/home/aaron/Desktop/124/CMSC124_Project", 
-		title="Open a .lol file", 
-		filetypes=(	("IN Files", "*.lol"),
-					("All Files", "*.*")))
-	# default
-	# file = filedialog.askopenfilename(initialdir="/", 
+	# lol = filedialog.askopenfilename(initialdir="/home/aaron/Desktop/124/CMSC124_Project", 
 	# 	title="Open a .lol file", 
-	# 	filetypes=(	("LOL Files", "*.lol"),
+	# 	filetypes=(	("IN Files", "*.lol"),
 	# 				("All Files", "*.*")))
+	
+	# default
+	file = filedialog.askopenfilename(initialdir="/", 
+		title="Open a .lol file", 
+		filetypes=(	("LOL Files", "*.lol"),
+					("All Files", "*.*")))
 
 	if lol:
 		f = open(lol, "r")
@@ -28,8 +29,6 @@ def upload():
 		for i in file:
 			text_editor.insert(END,i)
 		
-
-
 root = Tk()
 root.title("LOLTERPRETER")
 root.geometry("1000x620")
