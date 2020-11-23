@@ -1,82 +1,103 @@
 import re
+import tkinter
+from tkinter.filedialog import askopenfilename
 
-token_expressions = [
-  (r"^HAI\s", "KEYWORD"),
-  (r"^KTHXBYE\s|^KTHXBYE$", "KEYWORD"),
-  (r"^BTW\s", "KEYWORD"),
-  (r"^OBTW\s", "KEYWORD"),
-  (r"^TLDR\s", "KEYWORD"),
-  (r"^I HAS A\s", "KEYWORD"),
-  (r"^ITZ\s", "KEYWORD"),
-  (r"^R\s", "KEYWORD"),
-  (r"^SUM OF\s", "KEYWORD"),
-  (r"^DIFF OF\s", "KEYWORD"),
-  (r"^PRODUKT OF\s", "KEYWORD"),
-  (r"^QUOSHUNT OF\s", "KEYWORD"),
-  (r"^MOD OF\s", "KEYWORD"),
-  (r"^BIGGR OF\s", "KEYWORD"),
-  (r"^SMALLR OF\s", "KEYWORD"),
-  (r"^BOTH OF\s", "KEYWORD"),
-  (r"^EITHER OF\s", "KEYWORD"),
-  (r"^WON OF\s", "KEYWORD"),
-  (r"^NOT\s", "KEYWORD"),
-  (r"^ANY OF\s", "KEYWORD"),
-  (r"^ALL OF\s", "KEYWORD"),
-  (r"^BOTH SAEM\s", "KEYWORD"),
-  (r"^DIFFRINT\s", "KEYWORD"),
-  (r"^SMOOSH\s", "KEYWORD"),
-  (r"^MAEK\s", "KEYWORD"),
-  (r"^A\s", "KEYWORD"),
-  (r"^IS NOW A\s", "KEYWORD"),
-  (r"^VISIBLE\s", "KEYWORD"),
-  (r"^GIMMEH\s", "KEYWORD"),
-  (r"^O RLY\?\s", "KEYWORD"),
-  (r"^YA RLY\s", "KEYWORD"),
-  (r"^MEBBE\s", "KEYWORD"),
-  (r"^NO WAI\s", "KEYWORD"),
-  (r"^OIC\s", "KEYWORD"),
-  (r"^WTF\?\s", "KEYWORD"),
-  (r"^OMG\s", "KEYWORD"),
-  (r"^OMGWTF\s", "KEYWORD"),
-  (r"^IM IN YR\s", "KEYWORD"),
-  (r"^UPPIN\s", "KEYWORD"),
-  (r"^NERFIN\s", "KEYWORD"),
-  (r"^YR\s", "KEYWORD"),
-  (r"^TIL\s", "KEYWORD"),
-  (r"^WILE\s", "KEYWORD"),
-  (r"^IM OUTTA YR\s", "KEYWORD"),
-  (r"^(-?[0-9]+)\s", "NUMBR_LITERAL"),
-  (r"^(-)?[0-9]*(\.)[0-9]+\s", "NUMBAR_LITERAL"),
-  (r"^\".+\"\s", "YARN_LITERAL"),
-  (r"^(WIN|FAIL)\s", "TROOF_LITERAL"),
-  (r"^(NOOB|NUMBR|NUMBAR|YARN|TROOF)\s", "TYPE_LITERAL"),
-  (r"^[a-zA-Z][a-zA-Z0-9_]*\s", "IDENTIFIER"),
-]
 
-def lex(text, token_expressions):
-  tokens = {}
-  
-  lines = text.split("\n")
-  line_number = 1
-  for line in lines:
-    line = line.strip()
-    line = line + "\n"
-    while (line != "" and line != "\n"):
-      for token_exp in token_expressions:
-        pattern, tag = token_exp
-        match = re.match(pattern, line)
-        if (match):
-          if (tokens.get(match.group(0)[:-1]) == None):
-            tokens.update({match.group(0)[:-1]: tag})
-          line = line[match.end(0):]
-          break
-      else:
-        print(f"Error in line number {line_number}; Invalid token")
-        return
-    line_number += 1
-  return tokens
+class Lol:
+      token_expressions = [
+        (r"^HAI\s", "Code Delimiter"),
+        (r"^KTHXBYE\s|^KTHXBYE$", "Code Delimiter"),
+        (r"^BTW\s", "Comment Identifier"),
+        (r"^OBTW\s", "Multilinecomment Delimiter"),
+        (r"^TLDR\s", "Multilinecomment Delimiter"),
+        (r"^I HAS A\s", "Variable Declaration"),
+        (r"^ITZ\s", "Variable Assignment"),
+        (r"^R\s", "KEYWORD"),
+        (r"^SUM OF\s", "Addition Keyword"),
+        (r"^DIFF OF\s", "Subtraction Keyword"),
+        (r"^PRODUKT OF\s", "Multiplication Keyword"),
+        (r"^QUOSHUNT OF\s", "Subtraction Keyword"),
+        (r"^MOD OF\s", "Modulo Keyword"),
+        (r"^BIGGR OF\s", "Max Keyword"),
+        (r"^SMALLR OF\s", "Min Keyword"),
+        (r"^BOTH OF\s", "And Keyword"),
+        (r"^EITHER OF\s", "Or Keyword"),
+        (r"^WON OF\s", "Xor Keyword"),
+        (r"^NOT\s", "Not Keyword"),
+        (r"^ANY OF\s", "KEYWORD"),
+        (r"^ALL OF\s", "KEYWORD"),
+        (r"^BOTH SAEM\s", "Comparison == Keyword"),
+        (r"^DIFFRINT\s", "Comparison != Keyword"),
+        (r"^SMOOSH\s", "String Concatenation Keyword"),
+        (r"^MAEK\s", "KEYWORD"),
+        (r"^A\s", "KEYWORD"),
+        (r"^IS NOW A\s", "KEYWORD"),
+        (r"^VISIBLE\s", "Output Keyword"),
+        (r"^GIMMEH\s", "Input Keyword"),
+        (r"^O RLY\?\s", "If-else Delimiter"),
+        (r"^YA RLY\s", "If Delimiter"),
+        (r"^MEBBE\s", "Elif Delimiter"),
+        (r"^NO WAI\s", "Else Delimiter"),
+        (r"^OIC\s", "If-else Delimiter or Switch Delimiter"),
+        (r"^WTF\?\s", "Switch Delimiter"),
+        (r"^OMG\s", "Case Delimiter"),
+        (r"^OMGWTF\s", "Default Case Delimiter"),
+        (r"^IM IN YR\s", "KEYWORD"),
+        (r"^UPPIN\s", "KEYWORD"),
+        (r"^NERFIN\s", "KEYWORD"),
+        (r"^YR\s", "KEYWORD"),
+        (r"^TIL\s", "KEYWORD"),
+        (r"^WILE\s", "KEYWORD"),
+        (r"^IM OUTTA YR\s", "KEYWORD"),
+        (r"^(-?[0-9]+)\s", "Numbr Literal"),
+        (r"^(-)?[0-9]*(\.)[0-9]+\s", "Numbar Literal"),
+        (r"^\".+\"\s", "Yarn Literal"),
+        (r"^(WIN|FAIL)\s", "Troof Literal"),
+        (r"^(NOOB|NUMBR|NUMBAR|YARN|TROOF)\s", "Type Literal"),
+        (r"^[a-zA-Z][a-zA-Z0-9_]*\s", "Variable Identifier"),
+      ]
 
-file = open("sample.lol", "r")
-text = file.read()
+      tokens = []
 
-print(lex(text, token_expressions))
+
+
+      def readFile(self):
+        filename = askopenfilename()
+        file = open(filename,'r')
+        self.text = file.read()
+
+      def printTokens(self):
+        for i in range(len(self.tokens)):
+              print(self.tokens[i][0] + " \t" + self.tokens[i][1] )
+
+
+      def lex(self):
+        tokens = self.tokens
+        text = self.text
+        token_expressions = self.token_expressions
+
+        lines = text.split("\n")
+        line_number = 1
+        for line in lines:
+          line = line.strip()
+          line = line + "\n"
+          while (line != "" and line != "\n"):
+            for token_exp in token_expressions:
+              pattern, tag = token_exp
+              match = re.match(pattern, line)
+              if (match):
+                tokens.append([match.group(0)[:-1],tag])
+                line = line[match.end(0):]
+                break
+            else:
+              print(f"Error in line number {line_number}; Invalid token")
+              return
+          line_number += 1
+        return tokens
+
+      
+      
+lol = Lol()
+lol.readFile()
+lol.lex()
+lol.printTokens()
