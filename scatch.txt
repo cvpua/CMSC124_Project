@@ -1,0 +1,84 @@
+Class Interpreter{
+  File
+  self.lexer = Lexer(self.file)
+  self.tokens = []
+  Parser
+  Semantic Analyzer
+
+  set_file(name_of_file)
+  
+  interpret(){
+    self.tokens = self.lexer.tokenize()
+  }
+}
+
+Class Lexer{
+  token_classifications = [Token]
+  file
+
+  tokenize(){
+    return list of tokens
+  }
+}
+
+Class Token{
+  type
+  regex
+}
+
+Class Parser{
+  tokens
+  current_token = tokens[0]
+
+  eat(token_type){
+    if (token_type == tokens[0].type):
+      tokens.pop()
+    if len(tokens) != 0 : current_token = tokens[0]
+    else print(End of file)
+  }
+
+  codeblock(){
+    children = []
+    if ()
+
+    return Codeblock(children)
+  }
+
+  program(){
+    children = []
+    if (current_token.type == HAI){
+      children.push(current_token)
+      self.eat(HAI)
+    }
+    else{
+      raise error
+    }
+
+    children.push(self.codeblock())
+
+    if(current_token.type == KTHXBYE){
+      children.push(current_token)
+      self.eat(KTHXBYE)
+    }
+
+    return Program(children)
+  }
+
+  parse(tokens){
+    return self.program()
+  }
+}
+
+Class Analyzer{
+  Node
+  Symbol Table
+
+  analyze(Node){
+    if (variable declaration){
+      var_dec(Node.children)
+    }
+
+    for node in Node.children:
+      analyze(node)
+  }
+}

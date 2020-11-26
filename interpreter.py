@@ -69,6 +69,7 @@ def lex(text, token_expressions):
           if (tokens.get(match.group(0)[:-1]) == None):
             tokens.update({match.group(0)[:-1]: tag})
           line = line[match.end(0):]
+          print(tokens)
           break
       else:
         print(f"Error in line number {line_number}; Invalid token")
@@ -76,7 +77,7 @@ def lex(text, token_expressions):
     line_number += 1
   return tokens
 
-file = open("sample.lol", "r")
+file = open("input.lol", "r")
 text = file.read()
 
 print(lex(text, token_expressions))
