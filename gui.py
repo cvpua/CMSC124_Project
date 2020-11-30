@@ -1,24 +1,46 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+import interpreter
 
-def execute():
+
+def update_lexeme_table():
+	c = 0
+	lexeme_table.delete(*lexeme_table.get_children())		#clear table
+	while c < 50:	#dummy values
+		lexeme_table.insert(parent='', index='end', text="test"+str(c), values=("test"+str(c)))
+		c = c + 1
+	
+
+def update_symbol_table():
+	c = 0
+	symbol_table.delete(*symbol_table.get_children())		#clear table
+	while c < 50:	#dummy values
+		symbol_table.insert(parent='', index='end', text="test"+str(c), values=("test"+str(c)))
+		c = c + 1
+	
+
+def update_terminal():
 	output_text.delete(1.0, END) 			# clear the output text
 	string = text_editor.get(1.0, END)		# get string, for now get from text editor
 	output_text.insert(END,string)			# print string
 
+def execute():	
+	update_lexeme_table()
+	update_symbol_table()
+	update_terminal()
+
 def upload():
 	# for aaron's directory
-	# lol = filedialog.askopenfilename(initialdir="/home/aaron/Desktop/124/CMSC124_Project", 
-	# 	title="Open a .lol file", 
-	# 	filetypes=(	("IN Files", "*.lol"),
-	# 				("All Files", "*.*")))
-	
-	# default
-	file = filedialog.askopenfilename(initialdir="/", 
+	lol = filedialog.askopenfilename(initialdir="/home/aaron/Desktop/124/CMSC124_Project", 
 		title="Open a .lol file", 
-		filetypes=(	("LOL Files", "*.lol"),
+		filetypes=(	("IN Files", "*.lol"),
 					("All Files", "*.*")))
+	# default
+	# file = filedialog.askopenfilename(initialdir="/", 
+	# 	title="Open a .lol file", 
+	# 	filetypes=(	("LOL Files", "*.lol"),
+	# 				("All Files", "*.*")))
 
 	if lol:
 		f = open(lol, "r")
@@ -61,10 +83,6 @@ lexeme_table.column("Classification", anchor=W, width=140, minwidth=50, stretch=
 lexeme_table.heading("#0", text="Lexeme", anchor=CENTER)
 lexeme_table.heading("Classification", text="Classification", anchor=CENTER)
 
-c = 0
-while c < 50:	#dummy values
-	lexeme_table.insert(parent='', index='end', text="test"+str(c), values=("test"+str(c)))
-	c = c + 1
 lexeme_table_frame.grid(row=0, column=1)
 
 # symbol table
@@ -82,10 +100,6 @@ symbol_table.column("Value", anchor=W, width=140, minwidth=50, stretch=NO)
 symbol_table.heading("#0", text="Identifier", anchor=CENTER)
 symbol_table.heading("Value", text="Value", anchor=CENTER)
 
-c = 0
-while c < 50:	#dummy values
-	symbol_table.insert(parent='', index='end', text="test"+str(c), values=("test"+str(c)))
-	c = c + 1
 symbol_table_frame.grid(row=0, column=2)
 
 # execute button
