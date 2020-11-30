@@ -185,7 +185,7 @@ class Parser:
   
   def eat(self, token_type):
     if (token_type == self.current_token.type):
-      self.tokens.pop()
+      self.tokens.pop(0)
     if (len(self.tokens) != 0): 
       self.current_token = self.tokens[0]
     else: 
@@ -210,7 +210,7 @@ class Parser:
       print("Invalid Syntax: Expect HAI_KEYWORD but saw " + self.current_token.type)
       return False
     
-    self.codeblock()
+    children.append(self.codeblock())
     
     if (self.current_token.type == "KTHXBYE_KEYWORD"):
       self.eat("KTHXBYE_KEYWORD")
