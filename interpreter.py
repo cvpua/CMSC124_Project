@@ -206,13 +206,30 @@ class Parser:
 
 
   def codeblock(self,children):  
+
+    children.append(Node("STATEMENT", children = self.statement([])))
+
+    # I-cacatch ulit lahat ng possible abstraction/grammar for multiple codeblocks
+    token_type = self.current_token.type
+    if(token_type != "KTHXBYE_KEYWORD"):
+      # children.append(Node("CODEBLOCK",children=[]))
+      # lenChildren = len(children)
+      # self.codeblock(children[lenChildren-1].children)
+      self.codeblock(children)
+
+    return Node("CODEBLOCK", children = children)
+  
+
+  def statement(self,children):
+    
     # Ang naiisip ko dito ay, mahabang if-elif-else na magcacatch sa lahat ng possible abstraction    
     # Naglagay ako ng children na parameter, para yung nauupdate na children ay laging sa current line/group
 
     if(self.current_token.type == "VISIBLE_KEYWORD"):
       self.eat("VISIBLE_KEYWORD") 
       #Creates a node then i-assign as children yung corresponding grammar/abstract
-      children.append(Node("PRINT", children = self.visible_block([Node("VISIBLE")])))
+      children.append(Node("PRINT", children = [Node("VISIBLE"),Node("PRINTOP")]))
+      children[-1].children[-1].children = self.visible_block([])
     
     elif(self.current_token.type == "I_HAS_A_KEYWORD"):
       self.eat("I_HAS_A_KEYWORD")
@@ -224,21 +241,14 @@ class Parser:
       if(self.current_token.type == "ITZ_KEYWORD"):
         self.eat("ITZ_KEYWORD")
         children.append(Node("ASSIGNMENT",children= self.itz([Node("ITZ")])))
+    
+    return children
 
-
-    # I-cacatch ulit lahat ng possible abstraction/grammar for multiple codeblocks
-    token_type = self.current_token.type
-    if(token_type == "VISIBLE_KEYWORD" or token_type == "I_HAS_A_KEYWORD" or token_type == "ITZ"):
-      children.append(Node("CODEBLOCK",children=[]))
-      lenChildren = len(children)
-      self.codeblock(children[lenChildren-1].children)
-
-
-    return Node("CODEBLOCK", children = children)
-  
   # Tail-recursion is used to catch multiple argument in VISIBLE/printing
   def visible_block(self,children):
     isValid = False
+    terminal = ["YARN_LITERAL","VAR_IDENTIFIER","NUMBR_LITERAL","NUMBAR_LITERAL"]
+    
     # Catches all of the terminal
     if(self.current_token.type == "YARN_LITERAL"):
       children.append(Node("YARN_LITERAL", value= self.current_token.name))
@@ -260,7 +270,7 @@ class Parser:
       self.eat("NUMBAR_LITERAL")
       isValid = True
     
-    if(isValid and (self.tokens[0].type == "NUMBAR_LITERAL" or self.tokens[0].type == "NUMBR_LITERAL" or self.tokens[0].type == "YARN_LITERAL" or self.tokens[0].type == "VAR_IDENTIFIER")  ):
+    if(isValid and (self.tokens[0].type in terminal)):
       self.visible_block(children)
     
     return children
@@ -330,6 +340,7 @@ class Parser:
     
     
     self.printParseTree(0,children)
+    # print(children[1].children[0].children[0][0].type)
 
 
     return Node("PROGRAM", children = children)
