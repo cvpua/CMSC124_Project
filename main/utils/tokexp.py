@@ -18,6 +18,7 @@ TOK_EXP = [
     (r"^EITHER OF\s", "EITHER_OF_KEYWORD"),
     (r"^WON OF\s", "WON_OF_KEYWORD"),
     (r"^NOT\s", "NOT_KEYWORD"),
+    (r"^AN\s","AN_KEYWORD"),
     (r"^ANY OF\s", "ANY_OF_KEYWORD"),
     (r"^ALL OF\s", "ALL_OF_KEYWORD"),
     (r"^BOTH SAEM\s", "BOTH_SAEM_KEYWORD"),

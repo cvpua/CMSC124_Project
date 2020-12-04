@@ -29,14 +29,14 @@ class Parser:
     print("declaration")
     children = []
     if(self.current_token.type == "I_HAS_A_KEYWORD"):
-      self.eat("I_HAS_A_KEYWORD")
       children.append(Node("I_HAS_A_KEYWORD"))
+      self.eat("I_HAS_A_KEYWORD")
     else:
       return False
     
-    self.eat("VAR_IDENTIFIER")
     children.append(Node("VAR_IDENTIFIER", self.current_token.name))
-    
+    self.eat("VAR_IDENTIFIER")
+
     if (self.current_token.type == "ITZ_KEYWORD"):
       init_node =self.initialization()
       children.append(init_node)
@@ -45,9 +45,10 @@ class Parser:
   
   def initialization(self):
     children = []
-    self.eat("ITZ_KEYWORD")
-    children.append(Node("ITZ_KEYWORD"))
     
+    children.append(Node("ITZ_KEYWORD"))
+    self.eat("ITZ_KEYWORD")
+
     value_node = self.value()
     children.append(value_node)
     
@@ -64,8 +65,8 @@ class Parser:
     print("print")
     children = []
     if(self.current_token.type == "VISIBLE_KEYWORD"):
-      self.eat("VISIBLE_KEYWORD") 
       children.append(Node("VISIBLE_KEYWORD"))
+      self.eat("VISIBLE_KEYWORD")
     else:
       return False
     
@@ -258,20 +259,23 @@ class Parser:
     children = []
     
     if (self.current_token.type == "NUMBR_LITERAL"):
+      children.append(Node("NUMBR_LITERAL",value = self.current_token.name))
       self.eat("NUMBR_LITERAL")
-      children.append(Node("NUMBR_LITERAL"))
     else:
+      children.append(Node("NUMBAR_LITERAL",value = self.current_token.name))
       self.eat("NUMBAR_LITERAL")
-      children.append(Node("NUMBAR_LITERAL"))
+      
     
     return Node("NUMBER", children = children)
   
   def addition(self):
+   
     children = []
     # SUM OF
     if (self.current_token.type == "SUM_OF_KEYWORD"):
-      self.eat("SUM_OF_KEYWORD")
       children.append(Node("SUM_OF_KEYWORD"))
+      self.eat("SUM_OF_KEYWORD")
+      
     else:
       return False
     
@@ -279,12 +283,14 @@ class Parser:
     if (arithmetic_node := self.arithmetic()):
       children.append(arithmetic_node)
     else:
+      
       number_node = self.number()
       children.append(number_node)
     
     # AN
-    self.eat("AN_KEYWORD")
     children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
     number_node = self.number()
@@ -293,14 +299,33 @@ class Parser:
     return Node("ADDITION", children = children)
   
   def subtraction(self):
-    return False
-    # DIFF OF
+    children = []
+    # SUM OF
+    if (self.current_token.type == "DIFF_OF_KEYWORD"):
+      children.append(Node("DIFF_OF_KEYWORD"))
+      self.eat("DIFF_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("SUBTRACTION", children = children)
     
   def multiplication(self):
     return False
