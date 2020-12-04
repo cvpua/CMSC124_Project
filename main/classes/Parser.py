@@ -13,7 +13,7 @@ class Parser:
     if (len(self.tokens) != 0): 
       self.current_token = self.tokens[0]
     else: 
-      print("End parsing: Tokens is empty")
+      print("Finished parsing: Tokens is empty")
   
   def parse(self):
     # <program>

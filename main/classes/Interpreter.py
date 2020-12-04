@@ -66,15 +66,17 @@ class Interpreter:
     print(self.text)
   
   def print_tokens(self):
+    print("\n")
+    print("==========TOKENS==========")
     for token in self.tokens:
       print('"' + token.name + '"' + "\n\t" + token.type )
+    print("========END TOKENS========")
+    print("\n")
   
-  # TO DO:
-  # [ ] Print Tree
-  # - this function will print the visualization of the parse tree
-  # def print_tree(self):
   def print_tree(self,iteration = 0, node = None):
     if (iteration == 0):
+      print("\n")
+      print("==========TREE==========")
       children = self.tree.children
     else:
       children = node.children
@@ -83,5 +85,8 @@ class Interpreter:
       print("    "*iteration + child.type  + value)
       if(child.children):
         self.print_tree(iteration + 1, child)
-  # [ ] Print Symbol Table
+    if (iteration == 0):
+      print("========END TREE========")
+      print("\n")
+    
   # def print_symbol_table(self):
