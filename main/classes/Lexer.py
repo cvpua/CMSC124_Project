@@ -24,12 +24,12 @@ class Lexer:
             else:
               name = match.group(0)[:-1]
             tokens.append(
-                Token(name,tag)
+                Token(name,tag, line_number)
               )
             line = line[match.end(0):]
             break
         else:
           raise Exception(f"Error in line number {line_number}: Invalid token")
-      tokens.append(Token("\\n", "LINEBREAK"))
+      tokens.append(Token("\\n", "LINEBREAK", line_number))
       line_number += 1
     return tokens

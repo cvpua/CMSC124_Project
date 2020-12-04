@@ -9,7 +9,7 @@ class Parser:
     if (token_type == self.current_token.type):
       self.tokens.pop(0)
     else:
-      raise Exception(f"Syntax Error: Expect {token_type} but saw {self.current_token.type}")
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Expect {token_type} but saw {self.current_token.type}")
     if (len(self.tokens) != 0): 
       self.current_token = self.tokens[0]
     else: 
