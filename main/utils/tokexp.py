@@ -43,6 +43,7 @@ TOK_EXP = [
     (r"^TIL\s", "TIL_KEYWORD"),
     (r"^WILE\s", "WILE_KEYWORD"),
     (r"^IM OUTTA YR\s", "IM_OUTTA_YR_KEYWORD"),
+    (r"^IT\s", "IT_KEYWORD"),
     (r"^(-?[0-9]+)\s", "NUMBR_LITERAL"),
     (r"^(-)?[0-9]*(\.)[0-9]+\s", "NUMBAR_LITERAL"),
     (r"^\".+\"\s", "YARN_LITERAL"),
