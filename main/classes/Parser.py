@@ -413,11 +413,11 @@ class Parser:
     children.append(Node("HAI_KEYWORD"))
     
     # <linebreak>
-    self.eat("LINE_BREAK")
+    self.eat("LINEBREAK")
     children.append(Node("LINEBREAK"))
 
     # <codeblock>
-    codeblock = self.codeblock
+    codeblock = self.codeblock()
     children.append(codeblock)
     
     # KTHXBYE
@@ -425,11 +425,14 @@ class Parser:
     children.append(Node("KTHXBYE_KEYWORD"))
     
     # <linebreak>
-    self.eat("LINE_BREAK")
+    self.eat("LINEBREAK")
     children.append(Node("LINEBREAK"))
 
     return Node("PROGRAM", children = children)
 
   def parse(self):
     # <program>
-    return self.program()
+    print("Parsing...")
+    tree = self.program()
+    print("End parsing")
+    return tree

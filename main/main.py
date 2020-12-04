@@ -6,6 +6,12 @@ try:
   lol.run_lexer()
 except Exception as err:
   print(err)
-# lol.run_parser()
-# print(lol.parser)
-lol.print_tokens()
+finally:
+  lol.print_tokens()
+  
+try:
+  lol.run_parser()
+except Exception as err:
+  print(err)
+finally:
+  lol.print_tree()

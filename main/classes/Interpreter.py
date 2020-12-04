@@ -28,6 +28,7 @@ class Interpreter:
     self.tokens = lexer.tokenize()
   
   def run_parser(self):
+    print("Parsing")
     if (len(self.tokens) != 0):
       parser = Parser(self.tokens)
     else:
@@ -74,13 +75,14 @@ class Interpreter:
   # - this function will print the visualization of the parse tree
   # def print_tree(self):
   def print_tree(self,iteration = 0, node = None):
-    if (iteration == 0):
-      children = self.tree.children
-    else:
-      children = node.children
-    for i in range(len(children)):
-      print("\t"*iteration + children[i].type + ' - '  + str(children[i].value))
-      if(children[i].children):
-        self.print_tree(iteration + 1, children[i])
+    print(self.tree)
+    # if (iteration == 0):
+    #   children = self.tree.children
+    # else:
+    #   children = node.children
+    # for i in range(len(children)):
+    #   print("\t"*iteration + children[i].type + ' - '  + str(children[i].value))
+    #   if(children[i].children):
+    #     self.print_tree(iteration + 1, children[i])
   # [ ] Print Symbol Table
   # def print_symbol_table(self):
