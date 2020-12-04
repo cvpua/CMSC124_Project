@@ -28,12 +28,11 @@ class Interpreter:
     self.tokens = lexer.tokenize()
   
   def run_parser(self):
-    print("Parsing")
+    print("Parsing...")
     if (len(self.tokens) != 0):
       parser = Parser(self.tokens)
     else:
-      print("The list of tokens is empty")
-      return False
+      raise Exception("Parsing Error: The list of tokens is empty")
     self.tree = parser.parse()
     return True
   
