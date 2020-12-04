@@ -1,3 +1,7 @@
+import sys
+print(sys.getrecursionlimit())
+
+
 from classes.Interpreter import Interpreter
 
 lol = Interpreter()

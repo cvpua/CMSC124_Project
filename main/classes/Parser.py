@@ -13,19 +13,20 @@ class Parser:
     if (len(self.tokens) != 0): 
       self.current_token = self.tokens[0]
     else: 
-      raise Exception("Tokens is empty")
+      print("End parsing: Tokens is empty")
 
 # +++++++++++++++++++++++++MULTILINECOMMENT++++++++++++++++++
   def multilinecomment(self):
-     pass 
+    return False
     
   
 # +++++++++++++++++++++++++CONTROL+++++++++++++++++++++++++++
   def control(self):
-    pass
+    return False
 
 # +++++++++++++++++++++++++DECLARATION+++++++++++++++++++++++
   def declaration(self):
+    print("declaration")
     children = []
     if(self.current_token.type == "I_HAS_A_KEYWORD"):
       self.eat("I_HAS_A_KEYWORD")
@@ -36,7 +37,7 @@ class Parser:
     self.eat("VAR_IDENTIFIER")
     children.append(Node("VAR_IDENTIFIER", self.current_token.name))
     
-    if (self.current_token.type != "ITZ_KEYWORD"):
+    if (self.current_token.type == "ITZ_KEYWORD"):
       init_node =self.initialization()
       children.append(init_node)
     
@@ -56,10 +57,11 @@ class Parser:
 
 # +++++++++++++++++++++++++INPUT+++++++++++++++++++++++++++++
   def input(self):
-    pass
+    return False
 
 # +++++++++++++++++++++++++PRINT+++++++++++++++++++++++++++++
   def print(self):
+    print("print")
     children = []
     if(self.current_token.type == "VISIBLE_KEYWORD"):
       self.eat("VISIBLE_KEYWORD") 
@@ -103,9 +105,10 @@ class Parser:
   def variable(self):
     children = []
     if (self.current_token.type == "VAR_IDENTIFIER"):
-      self.eat("VAR_IDENTIFIER")
       children.append(Node("VAR_IDENTIFIER", value = self.current_token.name))
+      self.eat("VAR_IDENTIFIER")
     elif (self.current_token.type == "IT_KEYWORD"):
+      print("it")
       self.eat("IT_KEYWORD")
       children.append("IT_KEYWORD")
     else:
@@ -115,7 +118,6 @@ class Parser:
   
   def value(self):
     children = []
-    variable_node = self.variable()
     if (variable_node := self.variable()):
       children.append(variable_node)
     elif (expr_node := self.expr()):
@@ -131,6 +133,7 @@ class Parser:
     
     # Catches all the literal
     if(self.current_token.type == "YARN_LITERAL"):
+      print("yarn literal")
       children.append(Node("YARN_LITERAL", value= self.current_token.name))
       self.eat("YARN_LITERAL")
     elif(self.current_token.type == "VAR_IDENTIFIER"):
@@ -160,7 +163,8 @@ class Parser:
     return Node("CONCATENATION", children = children)
   
   def strconcat(self):
-    pass
+    return False
+    
 
 # ===============COMPARISON=================
   def comparison(self):
@@ -183,17 +187,17 @@ class Parser:
     return Node("COMPARISON", children = children)
   
   def equal(self):
-    pass
+    return False
   def noequal(self):
-    pass
+    return False
   def moreequal(self):
-    pass
+    return False
   def lessequal(self):
-    pass
+    return False
   def more(self):
-    pass
+    return False
   def less(self):
-    pass
+    return False
   
 # ===============BOOLEAN====================
   def boolean(self):
@@ -208,9 +212,9 @@ class Parser:
     return Node("BOOLEAN", children = children)
   
   def bool1(self):
-    pass
+    return False
   def bool2(self):
-    pass
+    return False
   def andLol(self):
     pass
   def orLol(self):
@@ -225,18 +229,25 @@ class Parser:
     children = []
     
     if (addition_node := self.addition()):
+      print("addition")
       children.append(addition_node)
     elif (subtraction_node := self.subtraction()):
+      print("subtraction")
       children.append(subtraction_node)
     elif (multiplication_node := self.multiplication()):
+      print("mult")
       children.append(multiplication_node)
-    elif (division_node := self.division):
+    elif (division_node := self.division()):
+      print("div")
       children.append(division_node)
-    elif (modulo_node := self.modulo):
+    elif (modulo_node := self.modulo()):
+      print("div")
       children.append(modulo_node)
     elif (greater_node := self.greater()):
+      print("div")
       children.append(greater_node)
     elif (lesser_node := self.lesser()):
+      print("div")
       children.append(lesser_node)
     else:
       return False
@@ -282,7 +293,7 @@ class Parser:
     return Node("ADDITION", children = children)
   
   def subtraction(self):
-    pass
+    return False
     # DIFF OF
     
     # <arithmetic> | <number>
@@ -292,7 +303,7 @@ class Parser:
     # <number>
     
   def multiplication(self):
-    pass
+    return False
     # PRODUKT OF
     
     # <arithmetic> | <number>
@@ -302,7 +313,7 @@ class Parser:
     # <number>
     
   def division(self):
-    pass
+    return False
     # QUOSHUNT OF
     
     # <arithmetic> | <number>
@@ -312,7 +323,7 @@ class Parser:
     # <number>
     
   def modulo(self):
-    pass
+    return False
     # MOD OF
     
     # <arithmetic> | <number>
@@ -322,7 +333,7 @@ class Parser:
     # <number>
     
   def greater(self):
-    pass
+    return False
     # BIGGR OF
     
     # <arithmetic> | <number>
@@ -332,7 +343,7 @@ class Parser:
     # <number>
     
   def lesser(self):
-    pass
+    return False
     # SMALLR OF
     
     # <arithmetic> | <number>
@@ -342,6 +353,29 @@ class Parser:
     # <number>
 
 
+# +++++++++++++++++++++++EXPRESSION+++++++++++++++++++++++++
+  def expr(self):
+    children = []
+    
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    elif (boolean_node := self.boolean()):
+      children.append(boolean_node)
+    elif (comparison_node := self.comparison()):
+      children.append(comparison_node)
+    elif (concatenation_node := self.concatenation()):
+      children.append(concatenation_node)
+    else:
+      return False
+    
+    return Node("EXPR", children = children)
+
+  
+  def end(self):
+    self.eat("LINEBREAK")
+    
+    return Node("LINEBREAK")
+  
   def statement(self):
     children = []
     # <expr>
@@ -362,37 +396,21 @@ class Parser:
     # <control>
     elif (control_node := self.control()):
       children.append(control_node)
-    # <multilinecomment>
+    # # <multilinecomment>
     elif (multilinecomment_node := self.multilinecomment()):
       children.append(multilinecomment_node)
     
     end_node = self.end()
     children.append(end_node)
       
-    return children
-
-# +++++++++++++++++++++++EXPRESSION+++++++++++++++++++++++++
-  def expr(self):
-    children = []
-    
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    elif (boolean_node := self.boolean()):
-      children.append(boolean_node)
-    elif (comparison_node := self.comparison):
-      children.append(comparison_node)
-    elif (concatenation_node := self.concatenation):
-      children.append(concatenation_node)
-    else:
-      return False
-    
-    return Node("EXPR", children = children)
-
+    return Node("STATEMENT", children = children)
+  
   def codeblock(self,children = []):
+    print("codeblock")
     # <statement> 
     statement = self.statement()
     children.append(statement)
-    
+
     # <statement><codeblock>
     token_type = self.current_token.type
     if(token_type != "KTHXBYE_KEYWORD"):
@@ -400,13 +418,8 @@ class Parser:
 
     return Node("CODEBLOCK", children = children)
   
-  def end(self):
-    if (self.current_token.type == "LINEBREAK"):
-      self.eat("LINEBREAK")
-    
-    return Node("LINEBREAK")
-
   def program(self):
+    print("program")
     children = []
     # HAI
     self.eat("HAI_KEYWORD")
@@ -423,7 +436,7 @@ class Parser:
     # KTHXBYE
     self.eat("KTHXBYE_KEYWORD")
     children.append(Node("KTHXBYE_KEYWORD"))
-    
+
     # <linebreak>
     self.eat("LINEBREAK")
     children.append(Node("LINEBREAK"))
@@ -432,7 +445,6 @@ class Parser:
 
   def parse(self):
     # <program>
-    print("Parsing...")
     tree = self.program()
     print("End parsing")
     return tree
