@@ -28,12 +28,11 @@ class Interpreter:
     self.tokens = lexer.tokenize()
   
   def run_parser(self):
-    print("Parsing")
+    print("Parsing...")
     if (len(self.tokens) != 0):
       parser = Parser(self.tokens)
     else:
-      print("The list of tokens is empty")
-      return False
+      raise Exception("Parsing Error: The list of tokens is empty")
     self.tree = parser.parse()
     return True
   
@@ -67,15 +66,17 @@ class Interpreter:
     print(self.text)
   
   def print_tokens(self):
+    print("\n")
+    print("==========TOKENS==========")
     for token in self.tokens:
       print('"' + token.name + '"' + "\n\t" + token.type )
+    print("========END TOKENS========")
+    print("\n")
   
-  # TO DO:
-  # [ ] Print Tree
-  # - this function will print the visualization of the parse tree
-  # def print_tree(self):
   def print_tree(self,iteration = 0, node = None):
     if (iteration == 0):
+      print("\n")
+      print("==========TREE==========")
       children = self.tree.children
     else:
       children = node.children
@@ -84,5 +85,8 @@ class Interpreter:
       print("    "*iteration + child.type  + value)
       if(child.children):
         self.print_tree(iteration + 1, child)
-  # [ ] Print Symbol Table
+    if (iteration == 0):
+      print("========END TREE========")
+      print("\n")
+    
   # def print_symbol_table(self):
