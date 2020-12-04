@@ -47,7 +47,7 @@ TOK_EXP = [
     (r"^IT\s", "IT_KEYWORD"),
     (r"^(-?[0-9]+)\s", "NUMBR_LITERAL"),
     (r"^(-)?[0-9]*(\.)[0-9]+\s", "NUMBAR_LITERAL"),
-    (r"^\".+\"\s", "YARN_LITERAL"),
+    (r"^\".[^\"]+\"\s", "YARN_LITERAL"),
     (r"^(WIN|FAIL)\s", "TROOF_LITERAL"),
     (r"^(NOOB|NUMBR|NUMBAR|YARN|TROOF)\s", "TYPE_LITERAL"),
     (r"^[a-zA-Z][a-zA-Z0-9_]*\s", "VAR_IDENTIFIER"),
