@@ -21,6 +21,7 @@ TOK_EXP = [
     (r"^AN\s","AN_KEYWORD"),
     (r"^ANY OF\s", "ANY_OF_KEYWORD"),
     (r"^ALL OF\s", "ALL_OF_KEYWORD"),
+    (r"^MKAY\s","MKAY_KEYWORD"),
     (r"^BOTH SAEM\s", "BOTH_SAEM_KEYWORD"),
     (r"^DIFFRINT\s", "DIFFRINT_KEYWORD"),
     (r"^SMOOSH\s", "SMOOSH_KEYWORD"),
