@@ -228,17 +228,226 @@ class Parser:
     return Node("COMPARISON", children = children)
   
   def equal(self):
-    return False
+    children = []
+    
+    # Checks the length of the line to see if it is a >= or ==
+    look_ahead = self.tokens
+    i = 0
+    while(look_ahead[i].type != "LINEBREAK" ):
+      i = i + 1
+    
+    if (i != 4):
+      return False
+
+
+    # BOTH SAEM
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+  
+
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("EQUAL",children = children)
+
   def noequal(self):
-    return False
+    children = []
+
+    # Checks the length of the line to see if it is a <= or !=
+    look_ahead = self.tokens
+    i = 0
+    while(look_ahead[i].type != "LINEBREAK" ):
+      i = i + 1
+    
+    if (i != 4):
+      return False
+
+
+    #NOT EQUAL
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    
+
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("NOTEQUAL",children = children)
   def moreequal(self):
-    return False
+    
+    children = []
+    # MORE EQUAL || LESS EQUAL
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # BIGGR OF
+    token_type = ""
+    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
+      children.append(Node("BIGGR_OF_KEYWORD"))
+      self.eat("BIGGR_OF_KEYWORD")
+      token_type = "MOREEQUAL"
+
+    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      token_type = "LESSEQUAL"
+
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node(token_type,children = children)
+
   def lessequal(self):
-    return False
+    children = []
+    # LeSS EQUAL
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # SMALLR OF
+    children.append(Node("SMALLR_OF_KEYWORD"))
+    self.eat("SMALLR_OF_KEYWORD")
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("LESSEQUAL",children = children)
+    
   def more(self):
-    return False
+    children = []
+    # MORE THAN
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    token_type = ""
+    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
+      children.append(Node("BIGGR_OF_KEYWORD"))
+      self.eat("BIGGR_OF_KEYWORD")
+      token_type = "MORE"
+
+    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      token_type = "LESS"
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node(token_type,children = children)
   def less(self):
-    return False
+    children = []
+    # LESS THAN
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # SMALLR OF
+    children.append(Node("SMALLR_OF_KEYWORD"))
+    self.eat("SMALLR_OF_KEYWORD")
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("LESS",children = children)
   
 # ===============BOOLEAN====================
   def boolean(self):
@@ -251,6 +460,8 @@ class Parser:
       children.append(bool2_node)
     else:
       return False
+    
+
     
     return Node("BOOLEAN", children = children)
   
