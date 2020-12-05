@@ -299,6 +299,10 @@ class Parser:
     children.append(number_node)
 
     return Node("NOTEQUAL",children = children)
+  
+  # Pinag-isa ko na lang si >= at =< kasi same sila ng starting keyword
+  # Nagkakaroon ng conflict if magkahiwalay
+  # moreequal ang gamit dito
   def moreequal(self):
     
     children = []
@@ -376,7 +380,10 @@ class Parser:
     children.append(number_node)
 
     return Node("LESSEQUAL",children = children)
-    
+
+  # Pinag-isa ko na lang si > at < kasi same sila ng starting keyword
+  # Nagkakaroon ng conflict if magkahiwalay
+  # more ang gamit dito  
   def more(self):
     children = []
     # MORE THAN
@@ -835,6 +842,7 @@ class Parser:
     return Node("MODULO", children = children)
     
   def greater(self):
+    # BIGGR OF
     children = []
     if (self.current_token.type == "BIGGR_OF_KEYWORD"):
       children.append(Node("BIGGR_OF_KEYWORD"))
@@ -860,18 +868,38 @@ class Parser:
     number_node = self.number()
     children.append(number_node)
     
-    return Node("MODULO", children = children)
+    return Node("GREATER", children = children)
     
   def lesser(self):
-    return False
+    
     # SMALLR OF
+    children = []
+    if (self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
-
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("LESSER", children = children)
+    
 
 # +++++++++++++++++++++++EXPRESSION+++++++++++++++++++++++++
   def expr(self):
