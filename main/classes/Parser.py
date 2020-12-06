@@ -66,11 +66,10 @@ class Parser:
   
   def initialization(self):
     children = []
-    # ITZ
-    self.eat("ITZ_KEYWORD")
-    children.append(Node("ITZ_KEYWORD"))
     
-    # <value>
+    children.append(Node("ITZ_KEYWORD"))
+    self.eat("ITZ_KEYWORD")
+
     value_node = self.value()
     children.append(value_node)
     
@@ -87,19 +86,19 @@ class Parser:
     children = []
     # VISIBLE
     if(self.current_token.type == "VISIBLE_KEYWORD"):
-      self.eat("VISIBLE_KEYWORD") 
       children.append(Node("VISIBLE_KEYWORD"))
+      self.eat("VISIBLE_KEYWORD")
     else:
       return False
     
     # <printop>
-    printop_node = self.printop()
+    printop_node = self.printop([])
     children.append(printop_node)
-
+  
     return Node("PRINT", children = children)
   
   # Tail-recursion is used to catch multiple argument in VISIBLE/printing
-  def printop(self,children = []):
+  def printop(self,children):
     # <value>
     value_node = self.value()
     children.append(value_node)
@@ -163,7 +162,7 @@ class Parser:
   
   def literal(self):
     children = []
-    
+ 
     # Catches all the literal
     if(self.current_token.type == "YARN_LITERAL"):
       children.append(Node("YARN_LITERAL", value= self.current_token.name))
@@ -177,6 +176,9 @@ class Parser:
     elif(self.current_token.type == "NUMBAR_LITERAL"):
       children.append(Node("NUMBAR_LITERAL",value= self.current_token.name))
       self.eat("NUMBAR_LITERAL")
+    elif(self.current_token.type == "TROOF_LITERAL"):
+      children.append(Node("TROOF_LITERAL",value = self.current_token.name))
+      self.eat("TROOF_LITERAL")
     
     return Node("LITERAL", children = children)
 
@@ -227,17 +229,233 @@ class Parser:
     return Node("COMPARISON", children = children)
   
   def equal(self):
-    return False
+    children = []
+    
+    # Checks the length of the line to see if it is a >= or ==
+    look_ahead = self.tokens
+    i = 0
+    while(look_ahead[i].type != "LINEBREAK" ):
+      i = i + 1
+    
+    if (i != 4):
+      return False
+
+
+    # BOTH SAEM
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+  
+
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("EQUAL",children = children)
+
   def noequal(self):
-    return False
+    children = []
+
+    # Checks the length of the line to see if it is a <= or !=
+    look_ahead = self.tokens
+    i = 0
+    while(look_ahead[i].type != "LINEBREAK" ):
+      i = i + 1
+    
+    if (i != 4):
+      return False
+
+
+    #NOT EQUAL
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    
+
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("NOTEQUAL",children = children)
+  
+  # Pinag-isa ko na lang si >= at =< kasi same sila ng starting keyword
+  # Nagkakaroon ng conflict if magkahiwalay
+  # moreequal ang gamit dito
   def moreequal(self):
-    return False
+    
+    children = []
+    # MORE EQUAL || LESS EQUAL
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # BIGGR OF
+    token_type = ""
+    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
+      children.append(Node("BIGGR_OF_KEYWORD"))
+      self.eat("BIGGR_OF_KEYWORD")
+      token_type = "MOREEQUAL"
+
+    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      token_type = "LESSEQUAL"
+
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node(token_type,children = children)
+
   def lessequal(self):
-    return False
+    children = []
+    # LeSS EQUAL
+    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
+      children.append(Node("BOTH_SAEM_KEYWORD"))
+      self.eat("BOTH_SAEM_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # SMALLR OF
+    children.append(Node("SMALLR_OF_KEYWORD"))
+    self.eat("SMALLR_OF_KEYWORD")
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("LESSEQUAL",children = children)
+
+  # Pinag-isa ko na lang si > at < kasi same sila ng starting keyword
+  # Nagkakaroon ng conflict if magkahiwalay
+  # more ang gamit dito  
   def more(self):
-    return False
+    children = []
+    # MORE THAN
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    token_type = ""
+    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
+      children.append(Node("BIGGR_OF_KEYWORD"))
+      self.eat("BIGGR_OF_KEYWORD")
+      token_type = "MORE"
+
+    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      token_type = "LESS"
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node(token_type,children = children)
   def less(self):
-    return False
+    children = []
+    # LESS THAN
+    if (self.current_token.type == "DIFFRINT_KEYWORD"):
+      children.append(Node("DIFFRINT_KEYWORD"))
+      self.eat("DIFFRINT_KEYWORD")
+      
+    else:
+      return False
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # SMALLR OF
+    children.append(Node("SMALLR_OF_KEYWORD"))
+    self.eat("SMALLR_OF_KEYWORD")
+
+    number_node = self.number()
+    children.append(number_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    # <number>
+    number_node = self.number()
+    children.append(number_node)
+
+    return Node("LESS",children = children)
   
 # ===============BOOLEAN====================
   def boolean(self):
@@ -251,20 +469,188 @@ class Parser:
     else:
       return False
     
+
+    
     return Node("BOOLEAN", children = children)
   
   def bool1(self):
-    return False
+    children = []
+    if(andLol_node := self.andLol()):
+      children.append(andLol_node)
+    elif(orLol_node := self.orLol()):
+      children.append(orLol_node)
+    elif(xorLol_node := self.xorLol()):
+      children.append(xorLol_node)
+    elif(notLol_node := self.notLol()):
+      children.append(notLol_node)
+    else:
+      return False
+
+    return Node("BOOL1",children = children)
+    
   def bool2(self):
-    return False
+    children = []
+    if(all_code := self.allLol()):
+      children.append(all_code)
+    elif(any_code := self.anyLol()):
+      children.append(any_code)
+    else:
+      return False
+
+    return Node("BOOL2",children = children)
+
   def andLol(self):
-    pass
+    children = []
+    # BOTH OF
+    if (self.current_token.type == "BOTH_OF_KEYWORD"):
+      children.append(Node("BOTH_OF_KEYWORD"))
+      self.eat("BOTH_OF_KEYWORD")
+      
+    else:
+      return False
+    
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      
+      literal_node = self.literal()
+      children.append(literal_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    
+    # <troof>
+    literal_node = self.literal()
+    children.append(literal_node)
+
+    return Node("AND",children = children)
+    
   def orLol(self):
-    pass
+    children = []
+    # EITHER OF
+    if (self.current_token.type == "EITHER_OF_KEYWORD"):
+      children.append(Node("EITHER_OF_KEYWORD"))
+      self.eat("EITHER_OF_KEYWORD")
+      
+    else:
+      return False
+    
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      
+      literal_node = self.literal()
+      children.append(literal_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    
+    # <troof>
+    literal_node = self.literal()
+    children.append(literal_node)
+
+    return Node("OR",children = children)
   def xorLol(self):
-    pass
+    children = []
+    # WON OF
+    if (self.current_token.type == "WON_OF_KEYWORD"):
+      children.append(Node("WON_OF_KEYWORD"))
+      self.eat("WON_OF_KEYWORD")
+      
+    else:
+      return False
+    
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      
+      literal_node = self.literal()
+      children.append(literal_node)
+    
+    # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
+    
+    # <troof>
+    literal_node = self.literal()
+    children.append(literal_node)
+
+    return Node("XOR",children = children)
+    
   def notLol(self):
-    pass
+    children = []
+    # NOT
+    if (self.current_token.type == "NOT_KEYWORD"):
+      children.append(Node("NOT_KEYWORD"))
+      self.eat("NOT_KEYWORD")
+      
+    else:
+      return False
+    
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      
+      literal_node = self.literal()
+      children.append(literal_node)
+    
+    return Node("XOR",children = children)
+  
+  def boolop(self):
+    children = []
+    
+    children.append(self.bool1())
+    while self.current_token.type != "MKAY_KEYWORD":
+    
+      children.append(Node("AN_KEYWORD"))
+      self.eat("AN_KEYWORD")
+
+      children.append(self.bool1())
+      
+    print("DONE")
+    return Node("BOOLOP",children=children)
+
+  def allLol(self):
+    children = []
+    if(self.current_token.type == "ALL_OF_KEYWORD"):
+      children.append(Node("ALL_OF_KEYWORD"))
+      self.eat("ALL_OF_KEYWORD")
+    else:
+      return False
+    
+    all_node = self.boolop()
+    children.append(all_node)
+
+    children.append(Node("MKAY"))
+    self.eat("MKAY_KEYWORD")
+
+    return Node("ALL",children = children)
+
+  def anyLol(self):
+    children = []
+    if(self.current_token.type == "ANY_OF_KEYWORD"):
+      children.append(Node("ANY_OF_KEYWORD"))
+      self.eat("ANY_OF_KEYWORD")
+    else:
+      return False
+    
+    all_node = self.boolop()
+    children.append(all_node)
+
+    children.append(Node("MKAY"))
+    self.eat("MKAY_KEYWORD")
+
+    return Node("ANY",children = children)
+
   
 # ==============ARITHMETIC==================
 
@@ -300,20 +686,23 @@ class Parser:
     children = []
     
     if (self.current_token.type == "NUMBR_LITERAL"):
+      children.append(Node("NUMBR_LITERAL",value = self.current_token.name))
       self.eat("NUMBR_LITERAL")
-      children.append(Node("NUMBR_LITERAL"))
     else:
+      children.append(Node("NUMBAR_LITERAL",value = self.current_token.name))
       self.eat("NUMBAR_LITERAL")
-      children.append(Node("NUMBAR_LITERAL"))
+      
     
     return Node("NUMBER", children = children)
   
   def addition(self):
+   
     children = []
     # SUM OF
     if (self.current_token.type == "SUM_OF_KEYWORD"):
-      self.eat("SUM_OF_KEYWORD")
       children.append(Node("SUM_OF_KEYWORD"))
+      self.eat("SUM_OF_KEYWORD")
+      
     else:
       return False
     
@@ -321,12 +710,14 @@ class Parser:
     if (arithmetic_node := self.arithmetic()):
       children.append(arithmetic_node)
     else:
+      
       number_node = self.number()
       children.append(number_node)
     
     # AN
-    self.eat("AN_KEYWORD")
     children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
     number_node = self.number()
@@ -335,65 +726,180 @@ class Parser:
     return Node("ADDITION", children = children)
   
   def subtraction(self):
-    return False
+    children = []
     # DIFF OF
+    if (self.current_token.type == "DIFF_OF_KEYWORD"):
+      children.append(Node("DIFF_OF_KEYWORD"))
+      self.eat("DIFF_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("SUBTRACTION", children = children)
     
   def multiplication(self):
-    return False
     # PRODUKT OF
+    children = []
+    if (self.current_token.type == "PRODUKT_OF_KEYWORD"):
+      children.append(Node("PRODUKT_OF_KEYWORD"))
+      self.eat("PRODUKT_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("MULTIPLICATION", children = children)
     
   def division(self):
-    return False
     # QUOSHUNT OF
+    children = []
+    if (self.current_token.type == "QUOSHUNT_OF_KEYWORD"):
+      children.append(Node("QUOSHUNT_OF_KEYWORD"))
+      self.eat("QUOSHUNT_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("DIVISION", children = children)
     
   def modulo(self):
-    return False
     # MOD OF
+    children = []
+    if (self.current_token.type == "MOD_OF_KEYWORD"):
+      children.append(Node("MOD_OF_KEYWORD"))
+      self.eat("MOD_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("MODULO", children = children)
     
   def greater(self):
-    return False
     # BIGGR OF
+    children = []
+    if (self.current_token.type == "BIGGR_OF_KEYWORD"):
+      children.append(Node("BIGGR_OF_KEYWORD"))
+      self.eat("BIGGR_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("GREATER", children = children)
     
   def lesser(self):
-    return False
+    
     # SMALLR OF
+    children = []
+    if (self.current_token.type == "SMALLR_OF_KEYWORD"):
+      children.append(Node("SMALLR_OF_KEYWORD"))
+      self.eat("SMALLR_OF_KEYWORD")
+      
+    else:
+      return False
     
     # <arithmetic> | <number>
+    if (arithmetic_node := self.arithmetic()):
+      children.append(arithmetic_node)
+    else:
+      
+      number_node = self.number()
+      children.append(number_node)
     
     # AN
+    children.append(Node("AN_KEYWORD"))
+    self.eat("AN_KEYWORD")
+    
     
     # <number>
-
+    number_node = self.number()
+    children.append(number_node)
+    
+    return Node("LESSER", children = children)
+    
 
 # +++++++++++++++++++++++EXPRESSION+++++++++++++++++++++++++
   def expr(self):
