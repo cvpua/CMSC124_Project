@@ -1,11 +1,10 @@
-HAI 1.2
+HAI
   I HAS A choice
 
   VISIBLE "1. Age in years"
   VISIBLE "2. Age in months"
   VISIBLE "3. Exit"
   VISIBLE "What do you want to do? "
-  GIMMEH choice
 
   choice R MAEK choice A NUMBR
 
