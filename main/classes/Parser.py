@@ -41,7 +41,142 @@ class Parser:
   
 # +++++++++++++++++++++++++CONTROL+++++++++++++++++++++++++++
   def control(self):
-    return False
+    children = []
+    # <ifthen>
+    if (if_then_node := self.ifthen_statement()):
+      children.append(if_then_node)
+    # <switch>
+    elif (switch_node := self.switch_statement()):
+      children.append(switch_node)
+    else:
+      return False
+
+    return Node("CONTROL", children = children)
+
+  # Nilagyan ko ng _statement / _block kasi yung break ay keyword sa python
+  # Nilagyan ko na lahat para uniform
+  # If hindi tama yung level ng linebreak sa tree, ililipat lang yung mga location ng pagcall ng self.end() sa functions under ng control
+
+  def ifthen_statement(self):
+    children = []
+    
+    if self.current_token.type == "O_RLY?_KEYWORD":
+      children.append(Node("O_RLY?_KEYWORD"))
+      self.eat("O_RLY?_KEYWORD")
+      end_node = self.end()
+      children.append(end_node)
+      children.append(self.if_block())
+      children.append(self.else_block())
+    else:
+        return False
+
+      
+    if self.current_token.type == "OIC_KEYWORD":
+      children.append(Node("OIC_KEYWORD"))
+      self.eat("OIC_KEYWORD")
+    else:
+      return False
+
+    return Node("IFTHEN",children = children)
+  
+  def switch_statement(self):
+    children = []
+    if self.current_token.type == "WTF?_KEYWORD":
+      children.append(Node("WTF?_KEYWORD"))
+      self.eat("WTF?_KEYWORD")
+      children.append(self.end())
+      children.append(self.caseop())
+      children.append(self.defaultcase_block())
+    else:
+      return False
+    
+    if self.current_token.type == "OIC_KEYWORD":
+      children.append(Node("OIC_KEYWORD"))
+      self.eat("OIC_KEYWORD")
+    else:
+      return False
+
+    return Node("SWITCH",children = children)
+
+  def break_statement(self):
+    children = []
+    if self.current_token.type == "GTFO_KEYWORD":
+      children.append(Node("GTFO_KEYWORD", value = self.current_token.name))
+      self.eat("GTFO_KEYWORD")
+      
+    else:
+      return False
+
+    return Node("GTFO_KEYWORD",children=children)
+
+  
+  def if_block(self):
+    children = []
+    if self.current_token.type == "YA_RLY_KEYWORD":
+      children.append(Node("YA_RLY_KEYWORD"))
+      self.eat("YA_RLY_KEYWORD")
+      codeblock = self.codeblock([])
+      children.append(codeblock)
+    else:
+      return False
+
+    return Node("IF",children=children)
+  
+  def else_block(self):
+    children = []
+    if self.current_token.type == "NO_WAI_KEYWORD":
+      children.append(Node("NO_WAI_KEYWORD"))
+      self.eat("NO_WAI_KEYWORD")
+      codeblock = self.codeblock([])
+      children.append(codeblock)
+    else:
+      return False
+
+    return Node("ELSE",children=children)
+  
+  def caseop(self):
+    children = []
+    children.append(self.case_block())
+    
+    if self.current_token.type == "OMG_KEYWORD":
+      
+      while self.current_token.type == "OMG_KEYWORD":
+        children.append(self.case_block())  
+ 
+    return Node("CASEOP",children = children)
+
+  def case_block(self):
+    children = []
+    if self.current_token.type == "OMG_KEYWORD":
+      children.append(Node("OMG_KEYWORD"))
+      self.eat("OMG_KEYWORD")
+      children.append(self.literal())
+      children.append(self.end())
+      children.append(self.codeblock([]))
+      
+      if self.current_token.type == "GTFO_KEYWORD":
+        children.append(self.break_statement())
+        children.append(self.end())
+
+    else:
+      return False
+
+    return Node("CASE",children = children)
+
+  def defaultcase_block(self):
+    children = []
+    
+    if self.current_token.type == "OMGWTF_KEYWORD":
+      children.append(Node("OMGWTF_KEYWORD"))
+      self.eat("OMGWTF_KEYWORD")
+      children.append(self.literal())
+      children.append(self.end())
+      children.append(self.codeblock([]))
+    else:
+      return False
+
+
+    return Node("DEFAULTCASE",children = children)
 
 # +++++++++++++++++++++++++DECLARATION+++++++++++++++++++++++
   def declaration(self):
@@ -950,21 +1085,23 @@ class Parser:
     # # <multilinecomment>
     elif (multilinecomment_node := self.multilinecomment()):
       children.append(multilinecomment_node)
-      
+    
     # <end>
     end_node = self.end()
     children.append(end_node)
       
     return Node("STATEMENT", children = children)
   
-  def codeblock(self,children = []):
+  def codeblock(self,children):
+    # inalis ko yung children = [] sa argument kasi nagcacause ulit ng multiple loop/repetition ng code, same error na naencounter sa printop
     # <statement> 
     statement = self.statement()
     children.append(statement)
-
     # <statement><codeblock>
     token_type = self.current_token.type
-    if(token_type != "KTHXBYE_KEYWORD"):
+    
+    # Pwede gawan ng list yung mga != dito, para token_type not in list yung condition
+    if(token_type != "KTHXBYE_KEYWORD" and token_type != "NO_WAI_KEYWORD" and token_type != "OIC_KEYWORD" and token_type != "OMG_KEYWORD" and token_type != "OMGWTF_KEYWORD" and token_type != "GTFO_KEYWORD"):
       self.codeblock(children)
 
     return Node("CODEBLOCK", children = children)
@@ -980,7 +1117,7 @@ class Parser:
     children.append(Node("LINEBREAK"))
 
     # <codeblock>
-    codeblock = self.codeblock()
+    codeblock = self.codeblock([])
     children.append(codeblock)
     
     # KTHXBYE
