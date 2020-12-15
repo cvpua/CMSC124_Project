@@ -38,6 +38,7 @@ TOK_EXP = [
     (r"^WTF\?\s", "WTF?_KEYWORD"),
     (r"^OMG\s", "OMG_KEYWORD"),
     (r"^OMGWTF\s", "OMGWTF_KEYWORD"),
+    (r"^GTFO\s", "GTFO_KEYWORD"),
     (r"^IM IN YR\s", "IM_IN_YR_KEYWORD"),
     (r"^UPPIN\s", "UPPIN_KEYWORD"),
     (r"^NERFIN\s", "NERFIN_KEYWORD"),
