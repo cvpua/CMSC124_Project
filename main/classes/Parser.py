@@ -810,7 +810,6 @@ class Parser:
     if (bool_node := self.bool1()):
       children.append(bool_node)
     else:
-      
       literal_node = self.literal()
       children.append(literal_node)
     
@@ -818,11 +817,13 @@ class Parser:
     children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      literal_node = self.literal()
+      children.append(literal_node)
     
-    # <troof>
-    literal_node = self.literal()
-    children.append(literal_node)
-
     return Node("AND",children = children)
     
   def orLol(self):
@@ -839,7 +840,6 @@ class Parser:
     if (bool_node := self.bool1()):
       children.append(bool_node)
     else:
-      
       literal_node = self.literal()
       children.append(literal_node)
     
@@ -848,9 +848,13 @@ class Parser:
     self.eat("AN_KEYWORD")
     
     
-    # <troof>
-    literal_node = self.literal()
-    children.append(literal_node)
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      literal_node = self.literal()
+      children.append(literal_node)
+    
 
     return Node("OR",children = children)
   def xorLol(self):
@@ -859,26 +863,28 @@ class Parser:
     if (self.current_token.type == "WON_OF_KEYWORD"):
       children.append(Node("WON_OF_KEYWORD"))
       self.eat("WON_OF_KEYWORD")
-      
     else:
       return False
     
     # <bool1> | <troof>
     if (bool_node := self.bool1()):
       children.append(bool_node)
-    else:
       
+    else:
       literal_node = self.literal()
       children.append(literal_node)
-    
+
     # AN
     children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
+    # <bool1> | <troof>
+    if (bool_node := self.bool1()):
+      children.append(bool_node)
+    else:
+      literal_node = self.literal()
+      children.append(literal_node)
     
-    # <troof>
-    literal_node = self.literal()
-    children.append(literal_node)
 
     return Node("XOR",children = children)
     
@@ -888,32 +894,40 @@ class Parser:
     if (self.current_token.type == "NOT_KEYWORD"):
       children.append(Node("NOT_KEYWORD"))
       self.eat("NOT_KEYWORD")
-      
     else:
       return False
-    
     # <bool1> | <troof>
     if (bool_node := self.bool1()):
       children.append(bool_node)
     else:
-      
       literal_node = self.literal()
       children.append(literal_node)
     
-    return Node("XOR",children = children)
+    return Node("NOT",children = children)
   
   def boolop(self):
     children = []
     
-    children.append(self.bool1())
+    if(bool_node := self.bool1()):
+        children.append(bool_node)
+    elif(literal_node := self.literal()):
+        children.append(literal_node)
+    else:
+          return False
+
     while self.current_token.type != "MKAY_KEYWORD":
-    
       children.append(Node("AN_KEYWORD"))
       self.eat("AN_KEYWORD")
-
-      children.append(self.bool1())
+      if(bool_node := self.bool1()):
+        children.append(bool_node)
+      elif(literal_node := self.literal()):
+        children.append(literal_node)
       
-    print("DONE")
+      if(self.current_token.type == "LINEBREAK"):
+        break
+        
+
+    
     return Node("BOOLOP",children=children)
 
   def allLol(self):
@@ -926,9 +940,9 @@ class Parser:
     
     all_node = self.boolop()
     children.append(all_node)
-
     children.append(Node("MKAY"))
     self.eat("MKAY_KEYWORD")
+  
 
     return Node("ALL",children = children)
 
@@ -940,8 +954,10 @@ class Parser:
     else:
       return False
     
-    all_node = self.boolop()
-    children.append(all_node)
+    if all_node := self.boolop():
+      children.append(all_node)
+    else:
+      return False
 
     children.append(Node("MKAY"))
     self.eat("MKAY_KEYWORD")
