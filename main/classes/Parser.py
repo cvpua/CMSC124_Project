@@ -138,8 +138,8 @@ class Parser:
       self.eat("VAR_IDENTIFIER")
     # IT
     elif (self.current_token.type == "IT_KEYWORD"):
+      children.append(Node("IT_KEYWORD", value = self.current_token.name))
       self.eat("IT_KEYWORD")
-      children.append("IT_KEYWORD")
     else:
       return False
     

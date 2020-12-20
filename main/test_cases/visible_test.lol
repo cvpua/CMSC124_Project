@@ -1,5 +1,9 @@
 HAI
-    VISIBLE "Hello World" 10 21 21
-    I HAS A jowa ITZ invisible
-    BOTH SAEM 5 AN 5
+    I HAS A jowa ITZ 0
+    VISIBLE jowa
+    I HAS A pera ITZ jowa
+    VISIBLE pera
+    I HAS A asawa
+    asawa R 10
+    VISIBLE asawa
 KTHXBYE

@@ -3,6 +3,7 @@ from tkinter.filedialog import askopenfilename
 
 from classes.Lexer import Lexer
 from classes.Parser import Parser
+from classes.Analyzer import Analyzer
 from utils.tokexp import TOK_EXP
 
 
@@ -36,15 +37,21 @@ class Interpreter:
     self.tree = parser.parse()
     return True
   
-  # def run_analyzer(self):
-  #   if (self.tree != None):
-  #     analyzer = Analyzer(self.tree)
-  #   else:
-  #     print("The tree is still empty")
-  #     return False
-  #   analyzer.analyze()
-  #   self.symbol_table = analyzer.symbol_table
-  #   return True
+  def run_analyzer(self):
+    if (self.tree != None):
+      analyzer = Analyzer(self.tree)
+    else:
+      print("The tree is still empty")
+      return False
+    
+    codeblock = None
+    for node in self.tree.children:
+      if (node.type == "CODEBLOCK"):
+        codeblock = node
+        break
+    analyzer.analyze(codeblock)
+    self.symbol_table = analyzer.symbol_table
+    return True
   
   # def interpret(self):
   #   is_successful = self.run_lexer()
