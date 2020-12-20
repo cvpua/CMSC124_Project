@@ -11,6 +11,7 @@ class Lexer:
     tokens = [] 
     lines = self.text.split("\n")
     line_number = 1
+    isMultiComment = False
     for line in lines:
       line = line.strip()
       line = line + "\n"
@@ -18,9 +19,36 @@ class Lexer:
         for token_exp in self.token_expressions:
           pattern, tag = token_exp
           match = re.match(pattern, line)
-          if (match):
+          
+          
+          if(isMultiComment):
+            tag = "MULTI_LINE_COMMENT" 
+            name = line[:-1]
+            if name == "TLDR":
+              isMultiComment = False
+              tag = "TLDR_KEYWORD"
+            tokens.append(
+                Token(name,tag, line_number)
+              )
+            line = line[-1:] 
+            break
+
+          elif (match):
+            
             if(tag == 'YARN_LITERAL'):
-              name = match.group(0)[1:-2]
+              name = match.group(0)
+              name = name[1:-2]
+
+            elif(tag == 'BTW_KEYWORD'):
+              name = line[:-1]
+              tokens.append(
+                Token(name,tag, line_number)
+              )
+              line = line[-1:] 
+              break
+            elif(tag == 'OBTW_KEYWORD'):
+              isMultiComment = True
+              name = match.group(0)[:-1]
             else:
               name = match.group(0)[:-1]
             tokens.append(
@@ -28,8 +56,12 @@ class Lexer:
               )
             line = line[match.end(0):]
             break
+
+          
         else:
           raise Exception(f"Error in line number {line_number}: Invalid token")
       tokens.append(Token("\\n", "LINEBREAK", line_number))
       line_number += 1
+    if(isMultiComment):
+      raise Exception("Error: TLDR not found")
     return tokens
