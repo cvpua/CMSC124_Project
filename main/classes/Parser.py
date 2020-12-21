@@ -110,13 +110,9 @@ class Parser:
     else:
         return False
 
+    self.eat("OIC_KEYWORD")
+    children.append(Node("OIC_KEYWORD"))
       
-    if self.current_token.type == "OIC_KEYWORD":
-      children.append(Node("OIC_KEYWORD"))
-      self.eat("OIC_KEYWORD")
-    else:
-      return False
-
     return Node("IFTHEN",children = children)
   
   def switch_statement(self):
@@ -126,16 +122,16 @@ class Parser:
       self.eat("WTF?_KEYWORD")
       children.append(self.end())
       children.append(self.caseop())
-      children.append(self.defaultcase_block())
+      if self.current_token.type == "OMGWTF_KEYWORD":
+        children.append(self.defaultcase_block())
+      else:
+        self.eat("OMGWTF_KEYWORD")
     else:
       return False
     
-    if self.current_token.type == "OIC_KEYWORD":
-      children.append(Node("OIC_KEYWORD"))
-      self.eat("OIC_KEYWORD")
-    else:
-      return False
-
+    self.eat("OIC_KEYWORD")
+    children.append(Node("OIC_KEYWORD"))
+      
     return Node("SWITCH",children = children)
 
   def break_statement(self):
@@ -149,17 +145,30 @@ class Parser:
 
     return Node("GTFO_KEYWORD",children=children)
 
-  
+
   def if_block(self):
     children = []
     if self.current_token.type == "YA_RLY_KEYWORD":
       children.append(Node("YA_RLY_KEYWORD"))
       self.eat("YA_RLY_KEYWORD")
+      isValid_codeblock = False
       codeblock = self.codeblock([])
-      children.append(codeblock)
+      for parent in codeblock.children:
+        for child in parent.children:
+          if child.type != "LINEBREAK":
+            isValid_codeblock = True
+            break
+      
+      if isValid_codeblock:
+        children.append(codeblock)
+        
+      else:
+        self.eat("CODEBLOCK")
     else:
+      self.eat("YA_RLY_KEYWORD")
       return False
 
+    
     return Node("IF",children=children)
   
   def else_block(self):
@@ -167,10 +176,21 @@ class Parser:
     if self.current_token.type == "NO_WAI_KEYWORD":
       children.append(Node("NO_WAI_KEYWORD"))
       self.eat("NO_WAI_KEYWORD")
+      isValid_codeblock = False
       codeblock = self.codeblock([])
-      children.append(codeblock)
+      for parent in codeblock.children:
+        for child in parent.children:
+          if child.type != "LINEBREAK":
+            isValid_codeblock = True
+            break
+      if isValid_codeblock:
+        children.append(codeblock)
+      else:
+        self.eat("CODEBLOCK")
     else:
+      self.eat("NO_WAI_KEYWORD")
       return False
+  
 
     return Node("ELSE",children=children)
   
@@ -182,7 +202,7 @@ class Parser:
       
       while self.current_token.type == "OMG_KEYWORD":
         children.append(self.case_block())  
- 
+    
     return Node("CASEOP",children = children)
 
   def case_block(self):
@@ -209,9 +229,17 @@ class Parser:
     if self.current_token.type == "OMGWTF_KEYWORD":
       children.append(Node("OMGWTF_KEYWORD"))
       self.eat("OMGWTF_KEYWORD")
-      children.append(self.literal())
       children.append(self.end())
-      children.append(self.codeblock([]))
+      isValid_codeblock = False
+      codeblock = self.codeblock([])
+      for parent in codeblock.children:
+        for child in parent.children:
+          if child.type != "LINEBREAK":
+            isValid_codeblock = True
+      if isValid_codeblock:
+        children.append(codeblock)
+      else:
+        self.eat("CODEBLOCK")
     else:
       return False
 
@@ -328,10 +356,12 @@ class Parser:
     # <expr>
     elif (expr_node := self.expr()):
       children.append(expr_node)
-    else:
+    elif (literal_node := self.literal()):
       # <literal>
-      literal_node = self.literal()
       children.append(literal_node)
+    else:
+      self.eat("VALUE")
+      return False
     
     return Node("VALUE", children = children)
   
@@ -354,6 +384,8 @@ class Parser:
     elif(self.current_token.type == "TROOF_LITERAL"):
       children.append(Node("TROOF_LITERAL",value = self.current_token.name))
       self.eat("TROOF_LITERAL")
+    else:
+      return False
     
     return Node("LITERAL", children = children)
 
@@ -369,12 +401,25 @@ class Parser:
       return False
     
     # <strconcat>
-    self.strconcat()
+    children.append(self.strconcat())
     
     return Node("CONCATENATION", children = children)
   
   def strconcat(self):
-    return False
+    children = []
+    
+    # Nacacatch na kasi ung error sa def value kaya di na ako nag lagay ng if-else dito
+    children.append(self.value())
+    self.eat("AN_KEYWORD")
+    children.append(self.value())
+    
+    if self.current_token.type == "AN_KEYWORD":
+      while self.current_token.type == "AN_KEYWORD":
+        self.eat("AN_KEYWORD")
+        children.append(self.value())
+
+
+    return Node("STRCONCAT",children = children)
     
 
 # ===============COMPARISON=================
