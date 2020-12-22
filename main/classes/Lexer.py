@@ -34,7 +34,7 @@ class Lexer:
 
           elif (match):
             
-            if(tag == 'YARN_LITERAL'):
+            if(tag == 'YARN'):
               name = match.group(0)
               name = name[1:-2]
 
