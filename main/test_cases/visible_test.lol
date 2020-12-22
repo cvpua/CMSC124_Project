@@ -6,4 +6,6 @@ HAI
     I HAS A asawa
     asawa R 10
     VISIBLE asawa
+    SMOOSH "yAAWA" AN "ka" AN "ghorl"
+    VISIBLE IT
 KTHXBYE

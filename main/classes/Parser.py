@@ -96,13 +96,9 @@ class Parser:
     else:
         return False
 
+    self.eat("OIC_KEYWORD")
+    children.append(Node("OIC_KEYWORD"))
       
-    if self.current_token.type == "OIC_KEYWORD":
-      children.append(Node("OIC_KEYWORD"))
-      self.eat("OIC_KEYWORD")
-    else:
-      return False
-
     return Node("IFTHEN",children = children)
   
   def switch_statement(self):
@@ -112,16 +108,16 @@ class Parser:
       self.eat("WTF?_KEYWORD")
       self.end()
       children.append(self.caseop())
-      children.append(self.defaultcase_block())
+      if self.current_token.type == "OMGWTF_KEYWORD":
+        children.append(self.defaultcase_block())
+      else:
+        self.eat("OMGWTF_KEYWORD")
     else:
       return False
     
-    if self.current_token.type == "OIC_KEYWORD":
-      children.append(Node("OIC_KEYWORD"))
-      self.eat("OIC_KEYWORD")
-    else:
-      return False
-
+    self.eat("OIC_KEYWORD")
+    children.append(Node("OIC_KEYWORD"))
+      
     return Node("SWITCH",children = children)
 
   def break_statement(self):
@@ -133,7 +129,7 @@ class Parser:
 
     return Node("GTFO_KEYWORD")
 
-  
+
   def if_block(self):
     children = []
     
@@ -143,6 +139,7 @@ class Parser:
     codeblock = self.codeblock([], True)
     children.append(codeblock)
 
+    
     return Node("IF",children=children)
   
   def else_block(self):
@@ -163,7 +160,7 @@ class Parser:
       
       while self.current_token.type == "OMG_KEYWORD":
         children.append(self.case_block())  
- 
+    
     return Node("CASEOP",children = children)
 
   def case_block(self):
@@ -307,10 +304,11 @@ class Parser:
     # <expr>
     elif (expr_node := self.expr()):
       children.append(expr_node)
-    else:
+    elif (literal_node := self.literal()):
       # <literal>
-      literal_node = self.literal()
       children.append(literal_node)
+    else:
+      return False
     
     return Node("VALUE", children = children)
   
@@ -345,12 +343,33 @@ class Parser:
       return False
     
     # <strconcat>
-    self.strconcat()
+    children.append(self.strconcat())
     
     return Node("CONCATENATION", children = children)
   
   def strconcat(self):
-    return False
+    children = []
+    
+    # Nacacatch na kasi ung error sa def value kaya di na ako nag lagay ng if-else dito
+    if (value_node := self.value()):
+      children.append(value_node)
+    else:
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+
+    self.eat("AN_KEYWORD")
+    
+    if (value_node := self.value()):
+      children.append(value_node)
+    else:
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+
+    
+    while self.current_token.type == "AN_KEYWORD":
+      self.eat("AN_KEYWORD")
+      children.append(self.value())
+
+
+    return Node("STRCONCAT",children = children)
     
 
 # ===============COMPARISON=================
