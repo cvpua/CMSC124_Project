@@ -21,15 +21,14 @@ class Lexer:
           match = re.match(pattern, line)
           
           
-          if(isMultiComment):
-            tag = "MULTI_LINE_COMMENT" 
+          if(isMultiComment): 
             name = line[:-1]
             if name == "TLDR":
               isMultiComment = False
               tag = "TLDR_KEYWORD"
-            tokens.append(
-                Token(name,tag, line_number)
-              )
+              tokens.append(
+                  Token(name,tag, line_number)
+                )
             line = line[-1:] 
             break
 
@@ -40,7 +39,7 @@ class Lexer:
               name = name[1:-2]
 
             elif(tag == 'BTW_KEYWORD'):
-              name = line[:-1]
+              name = match.group(0)[:-1]
               tokens.append(
                 Token(name,tag, line_number)
               )
@@ -60,7 +59,8 @@ class Lexer:
           
         else:
           raise Exception(f"Error in line number {line_number}: Invalid token")
-      tokens.append(Token("\\n", "LINEBREAK", line_number))
+      if (not isMultiComment):
+        tokens.append(Token("\\n", "LINEBREAK", line_number))
       line_number += 1
     if(isMultiComment):
       raise Exception("Error: TLDR not found")

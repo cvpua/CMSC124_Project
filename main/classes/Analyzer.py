@@ -3,7 +3,7 @@ from classes.Symbol import Symbol
 class Analyzer:
   def __init__(self, tree):
     self.tree = tree
-    self.symbol_table = {}
+    self.symbol_table = {"IT": Symbol("NOOB", None)}
   
   def analyze(self, codeblock):
     for child in codeblock.children:
@@ -15,24 +15,62 @@ class Analyzer:
       elif (statement.type == "ASSIGN"):
         self.assign(statement)
       elif (statement.type == "EXPR"):
-        symbol = self.get_value(statement)
+        symbol = self.expr(statement)
         self.insert("IT", symbol)
+      elif (statement.type == "CONTROL"):
+        self.control(statement)
+      elif (statement.type == "GTFO_KEYWORD"):
+        return True
+      elif (statement.type == "INPUT"):
+        self.gimmeh(statement)
+  
+  def gimmeh(self, statement):
+    variable = statement.children[1]
+    identifier = variable.children[0]
+    sample = input()
+    self.insert(identifier.value, Symbol("YARN", sample))
+  
+  def control(self, statement):
+    child = statement.children[0]
+    if (child.type == "IFTHEN"):
+      it = self.symbol_table["IT"]
+      it_bool = True if it.value == "WIN" else False
+      if (it_bool):
+        if_block = child.children[1]
+        codeblock = if_block.children[1]
+      else:
+        else_block = child.children[2]
+        codeblock = else_block.children[1]
+      self.analyze(codeblock)
+    elif (child.type == "SWITCH"):
+      it = self.symbol_table["IT"]
+      caseop = child.children[1]
+      for case in caseop.children:
+        symbol = self.get_value(case.children[1])
+        codeblock = case.children[2]
+        if (symbol.value == it.value):
+          if (self.analyze(codeblock)):
+            break
+      else:
+        default = child.children[2]
+        codeblock = default.children[1]
+        self.analyze(codeblock)
   
   def assign(self, statement):
     variable = statement.children[0]
     identifier = variable.children[0].value
     self.lookup(identifier)
     value_node = statement.children[2]
-    symbol = self.get_value(value_node.children[0])
+    symbol = self.get_value(value_node)
     self.insert(identifier, symbol)
   
   def declaration(self, statement):
     identifier = statement.children[1].value
-    self.insert(identifier)
+    self.insert(identifier, Symbol("NOOB", None))
     if (len(statement.children) > 2):
       init_node = statement.children[2]
       value_node = init_node.children[1]
-      symbol = self.get_value(value_node.children[0])
+      symbol = self.get_value(value_node)
       self.insert(identifier, symbol)
   
   def print(self, statement):
@@ -40,59 +78,148 @@ class Analyzer:
     string = ""
     for value_node in printop.children:
       # literal or variable
-      val_type = value_node.children[0]
-      symbol = self.get_value(val_type)
+      symbol = self.get_value(value_node)
       string += str(symbol.value)
     print(string)
   
   def arithmetic(self, node):
-    op1_node = node.children[1]
+    operation = node.children[0]
+    op1_node = operation.children[1]
     op1_symbol = self.get_value(op1_node)
-    op2_node = node.children[3]
+    self.check(op1_symbol, ["NUMBAR", "NUMBR"])
+    op2_node = operation.children[2]
     op2_symbol = self.get_value(op2_node)
+    self.check(op2_symbol, ["NUMBAR", "NUMBR"])
     op1_symbol.value = float(op1_symbol.value) if op1_symbol.type == "NUMBAR" else int(op1_symbol.value)
     op2_symbol.value = float(op2_symbol.value) if op2_symbol.type == "NUMBAR" else int(op2_symbol.value)
     
-    if (node.type == "ADDITION"):
+    if (operation.type == "ADDITION"):
       ans = op1_symbol.value + op2_symbol.value
-    elif (node.type == "SUBTRACTION"):
+    elif (operation.type == "SUBTRACTION"):
       ans = op1_symbol.value - op2_symbol.value
-    elif (node.type == "MULTIPLICATION"):
+    elif (operation.type == "MULTIPLICATION"):
       ans = op1_symbol.value * op2_symbol.value
-    elif (node.type == "DIVISION"):
+    elif (operation.type == "DIVISION"):
       ans = op1_symbol.value / op2_symbol.value
-    elif (node.type == "MODULO"):
+    elif (operation.type == "MODULO"):
       ans = op1_symbol.value % op2_symbol.value
-    elif (node.type == "GREATER"):
+    elif (operation.type == "GREATER"):
       ans = max(op1_symbol.value, op2_symbol.value)
-    elif (node.type == "LESSER"):
+    elif (operation.type == "LESSER"):
       ans = min(op1_symbol.value, op2_symbol.value)
     val_type = "NUMBAR" if (type(ans) == float) else "NUMBR"
-    return Symbol(val_type, ans)
+    return Symbol(val_type, str(ans))
   
+  def comparison(self, node):
+    comp_operation = node.children[0]
+    op1_node = comp_operation.children[1]
+    op1_symbol = self.get_value(op1_node)
+    self.check(op1_symbol, ["NUMBAR", "NUMBR"])
+    op2_node = comp_operation.children[2]
+    op2_symbol = self.get_value(op2_node)
+    self.check(op2_symbol, ["NUMBAR", "NUMBR"])
+    op1_symbol.value = float(op1_symbol.value) if op1_symbol.type == "NUMBAR" else int(op1_symbol.value)
+    op2_symbol.value = float(op2_symbol.value) if op2_symbol.type == "NUMBAR" else int(op2_symbol.value)
+    
+    if (comp_operation.type == "EQUAL"):
+      if (type(op1_symbol.value) != type(op2_symbol.value)):
+        ans = False
+      else:
+        ans = op1_symbol.value == op2_symbol.value
+    elif (comp_operation.type == "NOTEQUAL"):
+      if (type(op1_symbol.value) != type(op2_symbol.value)):
+        ans = True
+      else:
+        ans = op1_symbol.value != op2_symbol.value
+    ans = "WIN" if ans else "FAIL"
+    return Symbol("TROOF", ans)
+  
+  def concatenation(self, node):
+    smoosh_op = node.children[1]
+    string = ""
+    for value_node in smoosh_op.children:
+      symbol = self.get_value(value_node)
+      string += str(symbol.value)
+    
+    return Symbol("YARN", string)
+  
+  def boolean(self, node):
+    booltype = node.children[0]
+    bool_operation = booltype.children[0]
+    if (bool_operation.type == "NOT"):
+      op1_node = bool_operation.children[1]
+      op1_symbol = self.get_value(op1_node)
+      self.check(op1_symbol, ["TROOF"])
+      op1_bool = True if op1_symbol.value == "WIN" else False
+      ans = not op1_bool
+    elif (bool_operation.type in ["ALL", "ANY"]):
+      boolop = bool_operation.children[1]
+      current_op_symbol = self.get_value(boolop.children[0])
+      self.check(current_op_symbol, ["TROOF"])
+      op1_bool = True if current_op_symbol.value == "WIN" else False
+      for value in boolop.children[1:]:
+        op_symbol = self.get_value(value)
+        self.check(op_symbol, ["TROOF"])
+        op2_bool = True if op_symbol.value == "WIN" else False
+        if (bool_operation.type == "ALL"):
+          op1_bool = op1_bool and op2_bool
+        else:
+          op1_bool = op1_bool or op2_bool
+      ans = op1_bool
+    else:
+      op1_node = bool_operation.children[1]
+      op1_symbol = self.get_value(op1_node)
+      self.check(op1_symbol, ["TROOF"])
+      op2_node = bool_operation.children[2]
+      op2_symbol = self.get_value(op2_node)
+      self.check(op2_symbol, ["TROOF"])
+
+      op1_bool = True if op1_symbol.value == "WIN" else False
+      op2_bool = True if op2_symbol.value == "WIN" else False
+      
+      if (bool_operation.type == "AND"):
+        ans = op1_bool and op2_bool
+      elif (bool_operation.type == "OR"):
+        ans = op1_bool or op2_bool 
+      elif (bool_operation.type == "XOR"):
+        ans = op1_bool != op2_bool
+    
+    ans = "WIN" if ans else "FAIL"
+    val_type = "TROOF"
+    return Symbol(val_type, ans)
+     
+       
   def expr(self, node):
-    if (node.type == "ARITHMETIC"):
-      return self.arithmetic(node.children[0])
-    elif (node.type == "COMPARISON"):
-      return
+    child = node.children[0]
+    if (child.type == "ARITHMETIC"):
+      return self.arithmetic(child)
+    elif (child.type == "COMPARISON"):
+      return self.comparison(child)
+    elif (child.type == "BOOLEAN"):
+      return self.boolean(child)
+    else:
+      return self.concatenation(child)
     
   def get_value(self, node):
-    if (node.type == "VARIABLE"):
-      variable = node.children[0]
+    child = node.children[0]
+    if (child.type == "VARIABLE"):
+      variable = child.children[0]
       identifier = variable.value
       self.lookup(identifier)
       return self.symbol_table[identifier]
-    elif (node.type == "EXPR"):
-      return self.expr(node.children[0])
-    elif (node.type == "ARITHMETIC"):
-      return self.arithmetic(node.children[0])
+    elif (child.type == "EXPR"):
+      return self.expr(child)
     else:
-      value = node.children[0].value
-      val_type = node.children[0].type
+      value = child.children[0].value
+      val_type = child.children[0].type
       return Symbol(val_type, value)
+    
+  def check(self, symbol, data_type):
+    if (not (symbol.type in data_type)):
+      raise Exception(f"Semantic Error: Unexpected data type {symbol.type}")
   
   # Adding a new variable or updating the value of the variable
-  def insert(self, name, symbol = None):
+  def insert(self, name, symbol):
     self.symbol_table.update({
       name: symbol
     })

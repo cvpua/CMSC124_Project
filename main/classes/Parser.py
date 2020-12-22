@@ -1,5 +1,7 @@
 from classes.Node import Node
 
+DELIMITERS = ["KTHXBYE_KEYWORD", "NO_WAI_KEYWORD", "OIC_KEYWORD", "OMG_KEYWORD", "OMGWTF_KEYWORD"]
+
 class Parser:
   def __init__(self, tokens):
     self.tokens = tokens
@@ -50,32 +52,17 @@ class Parser:
 
 # +++++++++++++++++++++++++MULTILINECOMMENT++++++++++++++++++
   def multilinecomment(self):
-    children = []
     if(self.current_token.type == "OBTW_KEYWORD"):
-      children.append(Node(self.current_token.type))
-      self.eat(self.current_token.type)
-      while(self.current_token.type != "TLDR_KEYWORD"):
-        if self.current_token.type != "LINEBREAK":
-          children.append(Node(self.current_token.type,value = self.current_token.name))
-        else:
-          children.append(Node(self.current_token.type))
-        self.eat(self.current_token.type)
-      children.append(Node(self.current_token.type))
-      self.eat(self.current_token.type)
+      self.eat("OBTW_KEYWORD")
+      self.eat("TLDR_KEYWORD")
     else:
       return False
 
-    return Node("MULTILINE_COMMENT",children = children)
-
   def comment(self):
-    children = []
     if(self.current_token.type == "BTW_KEYWORD"):
-      children.append(Node("BTW_KEYWORD",value = self.current_token.name))
       self.eat("BTW_KEYWORD")
-      
     else:
       return False    
-    return Node("COMMENT",children=children)
       
 
   
@@ -103,8 +90,7 @@ class Parser:
     if self.current_token.type == "O_RLY?_KEYWORD":
       children.append(Node("O_RLY?_KEYWORD"))
       self.eat("O_RLY?_KEYWORD")
-      end_node = self.end()
-      children.append(end_node)
+      self.end()
       children.append(self.if_block())
       children.append(self.else_block())
     else:
@@ -124,7 +110,7 @@ class Parser:
     if self.current_token.type == "WTF?_KEYWORD":
       children.append(Node("WTF?_KEYWORD"))
       self.eat("WTF?_KEYWORD")
-      children.append(self.end())
+      self.end()
       children.append(self.caseop())
       children.append(self.defaultcase_block())
     else:
@@ -139,38 +125,33 @@ class Parser:
     return Node("SWITCH",children = children)
 
   def break_statement(self):
-    children = []
     if self.current_token.type == "GTFO_KEYWORD":
-      children.append(Node("GTFO_KEYWORD", value = self.current_token.name))
       self.eat("GTFO_KEYWORD")
       
     else:
       return False
 
-    return Node("GTFO_KEYWORD",children=children)
+    return Node("GTFO_KEYWORD")
 
   
   def if_block(self):
     children = []
-    if self.current_token.type == "YA_RLY_KEYWORD":
-      children.append(Node("YA_RLY_KEYWORD"))
-      self.eat("YA_RLY_KEYWORD")
-      codeblock = self.codeblock([])
-      children.append(codeblock)
-    else:
-      return False
+    
+    children.append(Node("YA_RLY_KEYWORD"))
+    self.eat("YA_RLY_KEYWORD")
+    
+    codeblock = self.codeblock([], True)
+    children.append(codeblock)
 
     return Node("IF",children=children)
   
   def else_block(self):
     children = []
-    if self.current_token.type == "NO_WAI_KEYWORD":
-      children.append(Node("NO_WAI_KEYWORD"))
-      self.eat("NO_WAI_KEYWORD")
-      codeblock = self.codeblock([])
-      children.append(codeblock)
-    else:
-      return False
+    children.append(Node("NO_WAI_KEYWORD"))
+    self.eat("NO_WAI_KEYWORD")
+
+    codeblock = self.codeblock([], True)
+    children.append(codeblock)   
 
     return Node("ELSE",children=children)
   
@@ -190,13 +171,9 @@ class Parser:
     if self.current_token.type == "OMG_KEYWORD":
       children.append(Node("OMG_KEYWORD"))
       self.eat("OMG_KEYWORD")
-      children.append(self.literal())
-      children.append(self.end())
-      children.append(self.codeblock([]))
-      
-      if self.current_token.type == "GTFO_KEYWORD":
-        children.append(self.break_statement())
-        children.append(self.end())
+      children.append(self.value())
+      self.end()
+      children.append(self.codeblock([], True))
 
     else:
       return False
@@ -209,9 +186,8 @@ class Parser:
     if self.current_token.type == "OMGWTF_KEYWORD":
       children.append(Node("OMGWTF_KEYWORD"))
       self.eat("OMGWTF_KEYWORD")
-      children.append(self.literal())
-      children.append(self.end())
-      children.append(self.codeblock([]))
+      self.end()
+      children.append(self.codeblock([], True))
     else:
       return False
 
@@ -219,7 +195,7 @@ class Parser:
     return Node("DEFAULTCASE",children = children)
 
 # +++++++++++++++++++++++++DECLARATION+++++++++++++++++++++++
-  def declaration(self):
+  def declaration(self, is_block):
     children = []
     # I HAS A
     if(self.current_token.type == "I_HAS_A_KEYWORD"):
@@ -227,6 +203,9 @@ class Parser:
       self.eat("I_HAS_A_KEYWORD")
     else:
       return False
+
+    if (is_block):
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: DECLARATION is not allowed inside program blocks")
     
     # varident
     children.append(Node("VAR_IDENTIFIER", self.current_token.name))
@@ -279,7 +258,7 @@ class Parser:
     children.append(value_node)
     
     # <printop><value>
-    if (self.current_token.type != "LINEBREAK"):
+    if (self.current_token.type != "LINEBREAK" and self.current_token.type != "BTW_KEYWORD"):
       self.printop(children)
     
     return Node("PRINTOP", children = children)
@@ -339,21 +318,18 @@ class Parser:
     children = []
  
     # Catches all the literal
-    if(self.current_token.type == "YARN_LITERAL"):
-      children.append(Node("YARN_LITERAL", value= self.current_token.name))
-      self.eat("YARN_LITERAL")
-    elif(self.current_token.type == "VAR_IDENTIFIER"):
-      children.append(Node("VAR_IDENTIFIER",value= self.current_token.name))
-      self.eat("VAR_IDENTIFIER")
-    elif(self.current_token.type == "NUMBR_LITERAL"):
-      children.append(Node("NUMBR_LITERAL",value= self.current_token.name))
-      self.eat("NUMBR_LITERAL")
-    elif(self.current_token.type == "NUMBAR_LITERAL"):
-      children.append(Node("NUMBAR_LITERAL",value= self.current_token.name))
-      self.eat("NUMBAR_LITERAL")
-    elif(self.current_token.type == "TROOF_LITERAL"):
-      children.append(Node("TROOF_LITERAL",value = self.current_token.name))
-      self.eat("TROOF_LITERAL")
+    if(self.current_token.type == "YARN"):
+      children.append(Node("YARN", value= self.current_token.name))
+      self.eat("YARN")
+    elif(self.current_token.type == "NUMBR"):
+      children.append(Node("NUMBR",value= self.current_token.name))
+      self.eat("NUMBR")
+    elif(self.current_token.type == "NUMBAR"):
+      children.append(Node("NUMBAR",value= self.current_token.name))
+      self.eat("NUMBAR")
+    elif(self.current_token.type == "TROOF"):
+      children.append(Node("TROOF",value = self.current_token.name))
+      self.eat("TROOF")
     
     return Node("LITERAL", children = children)
 
@@ -386,18 +362,6 @@ class Parser:
     # <noequal>
     elif (noequal_node := self.noequal()):
       children.append(noequal_node)
-    # <moreequal>
-    elif (moreequal_node := self.moreequal()):
-      children.append(moreequal_node)
-    # <lessequal>
-    elif (lessequal_node := self.lessequal()):
-      children.append(lessequal_node)
-    # <more>
-    elif (more_node := self.more()):
-      children.append(more_node)
-    # <less>
-    elif (less_node := self.less()):
-      children.append(less_node)
     else:
       return False
 
@@ -405,19 +369,6 @@ class Parser:
   
   def equal(self):
     children = []
-    
-    # Checks the length of the line to see if it is a >= or ==
-    look_ahead = self.tokens
-    i = 0
-    equal_equal = True
-    while(look_ahead[i].type != "LINEBREAK" ):
-      if look_ahead[i].type == "BIGGR_OF_KEYWORD":
-        equal_equal = False
-      i = i + 1 
-    
-    if (not equal_equal):
-      return False
-
 
     # BOTH SAEM
     if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
@@ -427,48 +378,23 @@ class Parser:
     else:
       return False
 
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
-    
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
 
     return Node("EQUAL",children = children)
 
   def noequal(self):
     children = []
-
-    # Checks the length of the line to see if it is a <= or !=
-    look_ahead = self.tokens
-    i = 0
-    not_equal = True
-    while(look_ahead[i].type != "LINEBREAK" ):
-      if look_ahead[i].type == "SMALLR_OF_KEYWORD":
-        not_equal = False
-      i = i + 1
-
-    if (not not_equal):
-      return False
-
 
     #NOT EQUAL
     if (self.current_token.type == "DIFFRINT_KEYWORD"):
@@ -478,281 +404,20 @@ class Parser:
     else:
       return False
 
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     return Node("NOTEQUAL",children = children)
-  
-  # Pinag-isa ko na lang si >= at =< kasi same sila ng starting keyword
-  # Nagkakaroon ng conflict if magkahiwalay
-  # moreequal ang gamit dito
-  def moreequal(self):
-    
-    children = []
-    # MORE EQUAL || LESS EQUAL
-    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
-      children.append(Node("BOTH_SAEM_KEYWORD"))
-      self.eat("BOTH_SAEM_KEYWORD")
-      
-    else:
-      return False
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # BIGGR OF
-    token_type = ""
-    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
-      children.append(Node("BIGGR_OF_KEYWORD"))
-      self.eat("BIGGR_OF_KEYWORD")
-      token_type = "MOREEQUAL"
-
-    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
-      children.append(Node("SMALLR_OF_KEYWORD"))
-      self.eat("SMALLR_OF_KEYWORD")
-      token_type = "LESSEQUAL"
-
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-
-    return Node(token_type,children = children)
-
-  def lessequal(self):
-    children = []
-    # LeSS EQUAL
-    if (self.current_token.type == "BOTH_SAEM_KEYWORD"):
-      children.append(Node("BOTH_SAEM_KEYWORD"))
-      self.eat("BOTH_SAEM_KEYWORD")
-      
-    else:
-      return False
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # SMALLR OF
-    children.append(Node("SMALLR_OF_KEYWORD"))
-    self.eat("SMALLR_OF_KEYWORD")
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-
-    return Node("LESSEQUAL",children = children)
-
-  # Pinag-isa ko na lang si > at < kasi same sila ng starting keyword
-  # Nagkakaroon ng conflict if magkahiwalay
-  # more ang gamit dito  
-  def more(self):
-    children = []
-    # MORE THAN
-    if (self.current_token.type == "DIFFRINT_KEYWORD"):
-      children.append(Node("DIFFRINT_KEYWORD"))
-      self.eat("DIFFRINT_KEYWORD")
-      
-    else:
-      return False
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    token_type = ""
-    if(self.current_token.type == "BIGGR_OF_KEYWORD"):
-      children.append(Node("BIGGR_OF_KEYWORD"))
-      self.eat("BIGGR_OF_KEYWORD")
-      token_type = "MORE"
-
-    elif(self.current_token.type == "SMALLR_OF_KEYWORD"):
-      children.append(Node("SMALLR_OF_KEYWORD"))
-      self.eat("SMALLR_OF_KEYWORD")
-      token_type = "LESS"
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-
-    return Node(token_type,children = children)
-  def less(self):
-    children = []
-    # LESS THAN
-    if (self.current_token.type == "DIFFRINT_KEYWORD"):
-      children.append(Node("DIFFRINT_KEYWORD"))
-      self.eat("DIFFRINT_KEYWORD")
-      
-    else:
-      return False
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # SMALLR OF
-    children.append(Node("SMALLR_OF_KEYWORD"))
-    self.eat("SMALLR_OF_KEYWORD")
-
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-    
-    # AN
-    children.append(Node("AN_KEYWORD"))
-    self.eat("AN_KEYWORD")
-    
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
-    else:
-      number_node = self.number()
-      children.append(number_node)
-    
-
-    return Node("LESS",children = children)
   
 # ===============BOOLEAN====================
   def boolean(self):
@@ -765,9 +430,7 @@ class Parser:
       children.append(bool2_node)
     else:
       return False
-    
 
-    
     return Node("BOOLEAN", children = children)
   
   def bool1(self):
@@ -806,23 +469,18 @@ class Parser:
     else:
       return False
     
-    # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
-    # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     return Node("AND",children = children)
     
@@ -836,27 +494,23 @@ class Parser:
     else:
       return False
     
-    # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-    # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
 
     return Node("OR",children = children)
+  
   def xorLol(self):
     children = []
     # WON OF
@@ -867,23 +521,20 @@ class Parser:
       return False
     
     # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
-      
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
 
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
 
     return Node("XOR",children = children)
@@ -897,37 +548,49 @@ class Parser:
     else:
       return False
     # <bool1> | <troof>
-    if (bool_node := self.bool1()):
-      children.append(bool_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      literal_node = self.literal()
-      children.append(literal_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("NOT",children = children)
   
   def boolop(self):
     children = []
-    
-    if(bool_node := self.bool1()):
-        children.append(bool_node)
-    elif(literal_node := self.literal()):
-        children.append(literal_node)
+    if (value_node := self.value()):
+      children.append(value_node)
+      value_node = value_node.children[0]
+      if (value_node.type == "EXPR"):
+        while (value_node.children and value_node.type != "BOOL2"):
+          value_node = value_node.children[0]
+        if (value_node.type == "BOOL2"):
+          child = value_node.children[0]
+          if (child.type == "ALL" or child.type == "ANY"):
+            raise Exception(f"Syntax Error in line number {self.current_token.line_number}: ALL or ANY is not allowed as the operand")
     else:
-          return False
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
 
-    while self.current_token.type != "MKAY_KEYWORD":
-      children.append(Node("AN_KEYWORD"))
+    while (self.current_token.type != "MKAY_KEYWORD"):
       self.eat("AN_KEYWORD")
-      if(bool_node := self.bool1()):
-        children.append(bool_node)
-      elif(literal_node := self.literal()):
-        children.append(literal_node)
       
-      if(self.current_token.type == "LINEBREAK"):
+      if (value_node := self.value()):
+        children.append(value_node)
+        value_node = value_node.children[0]
+        if (value_node.type == "EXPR"):
+          while (value_node.children and value_node.type != "BOOL2"):
+            value_node = value_node.children[0]
+          if (value_node.type == "BOOL2"):
+            print("yes")
+            child = value_node.children[0]
+            if (child.type == "ALL" or child.type == "ANY"):
+              raise Exception(f"Syntax Error in line number {self.current_token.line_number}: ALL or ANY is not allowed as the operand")
+      else:
+        raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+
+      if(self.current_token.type == "LINEBREAK" or self.current_token.type == "BTW_KEYWORD"):
         break
         
-
-    
     return Node("BOOLOP",children=children)
 
   def allLol(self):
@@ -995,15 +658,16 @@ class Parser:
     
     return Node("ARITHMETIC", children = children)
   
+  # Temporary
   def number(self):
     children = []
     
-    if (self.current_token.type == "NUMBR_LITERAL"):
-      children.append(Node("NUMBR_LITERAL",value = self.current_token.name))
-      self.eat("NUMBR_LITERAL")
+    if (self.current_token.type == "NUMBR"):
+      children.append(Node("NUMBR",value = self.current_token.name))
+      self.eat("NUMBR")
     else:
-      children.append(Node("NUMBAR_LITERAL",value = self.current_token.name))
-      self.eat("NUMBAR_LITERAL")
+      children.append(Node("NUMBAR",value = self.current_token.name))
+      self.eat("NUMBAR")
       
     
     return Node("NUMBER", children = children)
@@ -1019,30 +683,19 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)      
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     return Node("ADDITION", children = children)
   
@@ -1056,30 +709,21 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("SUBTRACTION", children = children)
     
@@ -1093,30 +737,21 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-     # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("MULTIPLICATION", children = children)
     
@@ -1130,30 +765,21 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
   
-     # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
 
     return Node("DIVISION", children = children)
     
@@ -1167,30 +793,20 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-     # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("MODULO", children = children)
     
@@ -1204,30 +820,21 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("GREATER", children = children)
     
@@ -1241,30 +848,21 @@ class Parser:
     else:
       return False
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     # AN
-    children.append(Node("AN_KEYWORD"))
     self.eat("AN_KEYWORD")
     
     
-    # <arithmetic> | <number>
-    if (arithmetic_node := self.arithmetic()):
-      children.append(arithmetic_node)
-    # <variable>  
-    elif (variable_node := self.variable()):
-      children.append(variable_node)
+    if (value_node := self.value()):
+      children.append(value_node)
     else:
-      number_node = self.number()
-      children.append(number_node)
+      raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Operand must be a VALUE")
+    
     
     return Node("LESSER", children = children)
     
@@ -1291,11 +889,10 @@ class Parser:
 
   
   def end(self):
+    self.comment()
     self.eat("LINEBREAK")
-    
-    return Node("LINEBREAK")
   
-  def statement(self):
+  def statement(self, is_block):
     children = []
     # <expr>
     if (expr_node := self.expr()):
@@ -1310,7 +907,7 @@ class Parser:
     elif (input_node := self.input()):
       children.append(input_node)
     # <declaration>
-    elif (declaration_node := self.declaration()):
+    elif (declaration_node := self.declaration(is_block)):
       children.append(declaration_node)
     # <control>
     elif (control_node := self.control()):
@@ -1324,35 +921,34 @@ class Parser:
     # <multilinecomment>
     elif (multilinecomment_node := self.multilinecomment()):
       children.append(multilinecomment_node)
-    
+    elif (break_statement := self.break_statement()):
+      children.append(break_statement)
     # <end>
-    end_node = self.end()
-    children.append(end_node)
-      
+    self.end()
+    if (len(children) == 0):
+      return
     return Node("STATEMENT", children = children)
   
-  def codeblock(self,children):
+  def codeblock(self,children, is_block = False):
     # inalis ko yung children = [] sa argument kasi nagcacause ulit ng multiple loop/repetition ng code, same error na naencounter sa printop
     # <statement> 
-    statement = self.statement()
-    children.append(statement)
+    statement = self.statement(is_block)
+    if (statement):
+      children.append(statement)
     # <statement><codeblock>
     token_type = self.current_token.type
     
     # Pwede gawan ng list yung mga != dito, para token_type not in list yung condition
-    if(token_type != "KTHXBYE_KEYWORD" and token_type != "NO_WAI_KEYWORD" and token_type != "OIC_KEYWORD" and token_type != "OMG_KEYWORD" and token_type != "OMGWTF_KEYWORD" and token_type != "GTFO_KEYWORD"):
-      self.codeblock(children)
+    if(not(token_type in DELIMITERS)):
+      self.codeblock(children, is_block)
 
     return Node("CODEBLOCK", children = children)
   
   def program(self):
     children = []
     # Comment before HAI
-    if(self.current_token.type == "BTW_KEYWORD"):
-      while self.current_token.type == "BTW_KEYWORD":
-        comment = self.comment()
-        children.append(comment)
-        children.append(self.end())
+    while (self.current_token.type != "HAI_KEYWORD"):
+      self.end()
     # HAI
     self.eat("HAI_KEYWORD")
     children.append(Node("HAI_KEYWORD"))
@@ -1362,8 +958,9 @@ class Parser:
     children.append(Node("LINEBREAK"))
 
     # <codeblock>
-    codeblock = self.codeblock([])
-    children.append(codeblock)
+    if (self.current_token.type != "KTHXBYE_KEYWORD"):
+      codeblock = self.codeblock([])
+      children.append(codeblock)
     
     # KTHXBYE
     self.eat("KTHXBYE_KEYWORD")
@@ -1374,11 +971,8 @@ class Parser:
     children.append(Node("LINEBREAK"))
 
     # Comment after KTHXBYE
-    if(self.current_token.type == "BTW_KEYWORD"):
-      while self.current_token.type == "BTW_KEYWORD":
-        comment = self.comment()
-        children.append(comment)
-        children.append(self.end())
+    while (len(self.tokens) != 0):
+      self.end()
 
     return Node("PROGRAM", children = children)
 
