@@ -7,25 +7,26 @@ class Application:
 	def __init__(self):
 		self.lol = Interpreter()
 
-	def update_lexeme_table(self, lexeme_table):
-		lexeme_table.delete(*lexeme_table.get_children())	#clear table
+	def update_lexeme_table(self, lexeme_table):			# update lexeme table
+		lexeme_table.delete(*lexeme_table.get_children())	# clear table
 		for token in self.lol.tokens:
 			lexeme_table.insert(parent='', index='end', text=token.name, values=(token.type))
 		
-	def update_sym_table(self, sym_table):
-		sym_table.delete(*sym_table.get_children())			#clear table
+	def update_sym_table(self, sym_table):					# update symbol table
+		sym_table.delete(*sym_table.get_children())			# clear table
 		for key in self.lol.symbol_table:
-			if not self.lol.symbol_table[key].value:		#check if value if empty
-				continue
-			sym_table.insert(parent='', index='end', text=key, values=(self.lol.symbol_table[key].value))
+			if not self.lol.symbol_table[key].value:		# check if value if empty
+				sym_table.insert(parent='', index='end', text=key, values=("None"))
+			else:
+				sym_table.insert(parent='', index='end', text=key, values=(self.lol.symbol_table[key].value))
 
-	def update_terminal(self, output_text, string):
+	def update_terminal(self, output_text, string):	# update terminal
 		string = str(string)
 		output_text.insert(END,string+'\n')			# print string
 		output_text.insert(END,"lol-terminal:~$ ")	# print string
 		output_text.see("end")
 
-	def execute(self, lexeme_table, sym_table, output_text, text_editor):
+	def execute(self, lexeme_table, sym_table, output_text, text_editor):	# run the program
 
 		try:
 			self.lol.text = text_editor.get(1.0, END)	# update based from text_editor contents
@@ -46,12 +47,12 @@ class Application:
 		self.design_terminal(output_text)
 
 
-	def upload(self, text_editor):
+	def upload(self, text_editor):			# upload file to gui text editor
 		self.lol.readFile()
 		text_editor.delete(1.0, END)
 		text_editor.insert(END, self.lol.text)
 
-	def design_terminal(self, output_text):
+	def design_terminal(self, output_text):		# design gui terminal
 	
 		ter = "lol-terminal:~$"
 		index = '1.0'
