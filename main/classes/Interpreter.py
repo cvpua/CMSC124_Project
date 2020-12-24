@@ -37,9 +37,9 @@ class Interpreter:
     self.tree = parser.parse()
     return True
   
-  def run_analyzer(self):
+  def run_analyzer(self, output_text):
     if (self.tree != None):
-      analyzer = Analyzer(self.tree)
+      analyzer = Analyzer(self.tree, output_text)
     else:
       print("The tree is still empty")
       return False
