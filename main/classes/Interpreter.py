@@ -20,7 +20,8 @@ class Interpreter:
     filename = askopenfilename()
     file = open(filename,'r')
     self.text = file.read()
-  
+    return filename
+
   def run_lexer(self):
     if (self.text != ""):
       lexer = Lexer(self.text, TOK_EXP)
