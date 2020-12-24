@@ -2,10 +2,6 @@ from tkinter import *
 from classes.Symbol import Symbol
 from tkinter import simpledialog
 
-a = 16
-s = 0
-e = 15
-l = 1
 class Analyzer:
   def __init__(self, tree, output_text):
     self.tree = tree
@@ -89,14 +85,8 @@ class Analyzer:
       symbol = self.get_value(value_node)
       string += str(symbol.value)
     print(string)
-    # self.output_text.insert(END,"\n")      # print string
-    self.output_text.insert(END,string+'\n')      # print string
-    # self.output_text.tag_add("text", str(l)+'.'+str(e+1), str(l)+'.'+str(e+len(string)+1)) 
-    # self.output_text.tag_config("text", foreground="white")
-    # l = l + 1
-    self.output_text.insert(END,"lol-terminal:~$ ")      # print string
-    # self.output_text.tag_add("terminal", str(l)+'.'+str(s), str(l)+'.'+str(e)) 
-    # self.output_text.tag_config("terminal", foreground="green")
+    self.output_text.insert(END,string+'\n')          # print string
+    self.output_text.insert(END,"lol-terminal:~$ ")   # print string
     self.output_text.see("end")
     
   

@@ -61,19 +61,19 @@ sym_table_frame.grid(row=0, column=2)
 
 # output text
 output_text_frame = Frame(root)
-output_text = Text(output_text_frame, width=124,height=12)
-# output_text.configure(insertbackground='white')
+output_text = Text(output_text_frame, width=124,height=12, backgroun="black")
+output_text.configure(insertbackground='white')
 output_text.pack()
 output_text.insert(END,"lol-terminal:~$ ")
-# output_text.tag_add("terminal", "1.0", "1.15")
-# output_text.tag_config("terminal", foreground="green")
+output_text.tag_add("terminal", "1.0", "1.15")
+output_text.tag_config("terminal", foreground="green")
+output_text.tag_add("text", "1.15", END)
+output_text.tag_config("text", foreground="white")
 output_text.bind("<Key>", lambda e: "break")
 output_text_frame.grid(row=2,column=0,columnspan=3)
 
 # execute button
 execute_button = Button(root, text="Execute", width=121, command=lambda:app.execute(lexeme_table, sym_table, output_text, text_editor))
 execute_button.grid(row=1, column=0, columnspan=3)
-
-
 
 root.mainloop()
