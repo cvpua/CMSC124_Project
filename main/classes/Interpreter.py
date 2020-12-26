@@ -18,9 +18,12 @@ class Interpreter:
     # To do: 
     # [ ] check if the file type is lol, if not, then print an error
     filename = askopenfilename()
-    file = open(filename,'r')
-    self.text = file.read()
-    return filename
+    if filename:
+      file = open(filename,'r')
+      self.text = file.read()
+      return filename
+    else:
+      return None
 
   def run_lexer(self):
     if (self.text != ""):

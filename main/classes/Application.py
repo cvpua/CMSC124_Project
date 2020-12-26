@@ -49,18 +49,19 @@ class Application:
 
 	def upload(self, text_editor,upload_label):			# upload file to gui text editor
 		filename = self.lol.readFile()
-		text_editor.delete(1.0, END)
-		text_editor.insert(END, self.lol.text)
-		upload_label.pack_forget()
-		file = ""
-		filename = filename.split("/")
-		if len(filename[-1]) > 20:
-			file = filename[-1][0:19] + "..."
-		else:
-			file = filename[-1]
+		if filename:
+			text_editor.delete(1.0, END)
+			text_editor.insert(END, self.lol.text)
+			upload_label.pack_forget()
+			file = ""
+			filename = filename.split("/")
+			if len(filename[-1]) > 20:
+				file = filename[-1][0:19] + "..."
+			else:
+				file = filename[-1]
 
-		upload_label = Label(text=file, anchor=W, font=('Roboto', 12), width=20)
-		upload_label.grid(row=0, column=0)
+			upload_label = Label(text=file, anchor=W, font=('Roboto', 12), width=20)
+			upload_label.grid(row=0, column=0)
 
 	def design_terminal(self, output_text):		# design gui terminal
 	
