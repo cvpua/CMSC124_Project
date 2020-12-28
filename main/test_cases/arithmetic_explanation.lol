@@ -1,0 +1,7 @@
+HAI
+    I HAS A var1 ITZ 5
+
+    SUM OF 1 AN SUM OF var1 AN 2
+    VISIBLE IT
+
+KTHXBYE
