@@ -53,14 +53,21 @@ class Parser:
 # +++++++++++++++++++++++++MULTILINECOMMENT++++++++++++++++++
   def multilinecomment(self):
     if(self.current_token.type == "OBTW_KEYWORD"):
+      lineNumber = 2
+      children = []
       self.eat("OBTW_KEYWORD")
+      while self.current_token.type == "BTW_KEYWORD":
+        children.append(self.comment())
+        lineNumber = lineNumber + 1
       self.eat("TLDR_KEYWORD")
+      return Node("MULTICOMMENT",value = str(lineNumber))
     else:
       return False
 
   def comment(self):
     if(self.current_token.type == "BTW_KEYWORD"):
       self.eat("BTW_KEYWORD")
+      return Node("COMMENT")
     else:
       return False    
       
@@ -944,6 +951,7 @@ class Parser:
       children.append(break_statement)
     # <end>
     self.end()
+    children.append(Node("LINEBREAK"))
     if (len(children) == 0):
       return
     return Node("STATEMENT", children = children)

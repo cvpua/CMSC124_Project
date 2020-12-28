@@ -2,15 +2,25 @@ from tkinter import *
 from classes.Symbol import Symbol
 from tkinter import simpledialog
 
+
+lineNumber = 0
+
 class Analyzer:
   def __init__(self, tree, output_text):
     self.tree = tree
     self.symbol_table = {"IT": Symbol("NOOB", None)}
     self.output_text = output_text
   
+  def start_analyze(self,codeblock,line_number):
+    global lineNumber 
+    lineNumber = line_number
+    self.analyze(codeblock)
+
   def analyze(self, codeblock):
+    global lineNumber
     for child in codeblock.children:
       statement = child.children[0]
+      # print(statement.type)
       if (statement.type == "PRINT"):
         self.print(statement)
       elif (statement.type == "DECLARATION"):
@@ -26,8 +36,12 @@ class Analyzer:
         return True
       elif (statement.type == "INPUT"):
         self.gimmeh(statement)
+      elif (statement.type == "MULTICOMMENT"):
+        lineNumber = lineNumber + int(statement.value)
+        continue
+      lineNumber = lineNumber + 1
   
-  def gimmeh(self, statement):
+  def gimmeh(self, statement): 
     variable = statement.children[1]
     identifier = variable.children[0]
     sample = simpledialog.askstring(title="INPUT", prompt="Enter input: ")
@@ -35,29 +49,72 @@ class Analyzer:
   
   def control(self, statement):
     child = statement.children[0]
+    global lineNumber
     if (child.type == "IFTHEN"):
       it = self.symbol_table["IT"]
+      lineNumber = lineNumber + 1
       it_bool = True if it.value == "WIN" else False
+      if_block_len = len(child.children[1].children[1].children)
+      else_block_len = len(child.children[2].children[1].children)
       if (it_bool):
         if_block = child.children[1]
         codeblock = if_block.children[1]
       else:
+        lineNumber = lineNumber + if_block_len
         else_block = child.children[2]
         codeblock = else_block.children[1]
       self.analyze(codeblock)
+      if(it_bool):
+        lineNumber = lineNumber + else_block_len
+
     elif (child.type == "SWITCH"):
       it = self.symbol_table["IT"]
       caseop = child.children[1]
+      lineNumber = lineNumber + 1
+      isGtfo = None
+      done = False
+      default = child.children[2]
+      default_case_len = len(default.children[1].children)
       for case in caseop.children:
         symbol = self.get_value(case.children[1])
         codeblock = case.children[2]
-        if (symbol.value == it.value):
-          if (self.analyze(codeblock)):
-            break
+        case_len = len(codeblock.children)
+        if not done:
+            if (isGtfo == False):
+              lineNumber = lineNumber + 1
+              isGtfo = self.analyze(codeblock)
+              if(isGtfo):
+                done = True
+                continue
+              else:
+                isGtfo = False
+            elif (symbol.value == it.value and isGtfo != False):
+              lineNumber = lineNumber + 1
+              isGtfo = self.analyze(codeblock)
+              if (isGtfo):
+                done = True
+                continue
+              else:
+                isGtfo = False    
+            else:
+              lineNumber = lineNumber + 1
+              lineNumber = lineNumber + case_len
+              
+        elif done:
+          lineNumber = lineNumber + 1
+          lineNumber = lineNumber + case_len
+
+      if done:
+        print(default_case_len)
+        lineNumber = lineNumber + 2
+        lineNumber = lineNumber + default_case_len
+      
       else:
         default = child.children[2]
+        lineNumber = lineNumber + 1
         codeblock = default.children[1]
         self.analyze(codeblock)
+        lineNumber = lineNumber + 1
   
   def assign(self, statement):
     variable = statement.children[0]
@@ -223,8 +280,9 @@ class Analyzer:
       return Symbol(val_type, value)
     
   def check(self, symbol, data_type):
+    global lineNumber
     if (not (symbol.type in data_type)):
-      raise Exception(f"Semantic Error: Unexpected data type {symbol.type}")
+      raise Exception(f"Semantic Error: Unexpected data type {symbol.type} on line {lineNumber}")
   
   # Adding a new variable or updating the value of the variable
   def insert(self, name, symbol):
@@ -234,7 +292,8 @@ class Analyzer:
   
   # This function is for knowing whether the current variable is already declared
   def lookup(self, name):
+    global lineNumber
     for key in self.symbol_table:
       if (key == name):
         return
-    raise Exception(f"Semantic Error: Variable {name} is not yet declared")
+    raise Exception(f"Semantic Error: Variable {name} is not yet declared on line {lineNumber}")

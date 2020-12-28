@@ -49,11 +49,13 @@ class Interpreter:
       return False
     
     codeblock = None
+    lineNumber = 1
     for node in self.tree.children:
       if (node.type == "CODEBLOCK"):
         codeblock = node
         break
-    analyzer.analyze(codeblock)
+      lineNumber = lineNumber + 1
+    analyzer.start_analyze(codeblock,lineNumber)
     self.symbol_table = analyzer.symbol_table
     return True
   

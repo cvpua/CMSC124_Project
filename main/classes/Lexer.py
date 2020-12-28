@@ -29,6 +29,11 @@ class Lexer:
               tokens.append(
                   Token(name,tag, line_number)
                 )
+            else:
+              tag ="BTW_KEYWORD"
+              tokens.append(
+                Token("COMMENT",tag,line_number)
+              )
             line = line[-1:] 
             break
 
