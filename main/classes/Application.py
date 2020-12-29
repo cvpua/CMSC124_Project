@@ -20,12 +20,15 @@ class Application:
 			else:
 
 				# handle spaces in treeview, because it would cut spaces if encountered
+				temp1 = ""
 				if " " in self.lol.symbol_table[key].value:
 					temp = self.lol.symbol_table[key].value.split(" ")
-
-				temp1 = ""
-				for i in temp:
-					temp1 = temp1 + i + "\ "
+					for i in temp:
+						temp1 = temp1 + i + "\ "
+				else:
+					temp1 = self.lol.symbol_table[key].value
+				
+				
 
 				sym_table.insert(parent='', index='end', text=key, values=(temp1))
 
