@@ -54,10 +54,9 @@ class Parser:
   def multilinecomment(self):
     if(self.current_token.type == "OBTW_KEYWORD"):
       lineNumber = 2
-      children = []
       self.eat("OBTW_KEYWORD")
       while self.current_token.type == "BTW_KEYWORD":
-        children.append(self.comment())
+        self.comment()
         lineNumber = lineNumber + 1
       self.eat("TLDR_KEYWORD")
       return Node("MULTICOMMENT",value = str(lineNumber))
@@ -974,9 +973,16 @@ class Parser:
   def program(self):
     children = []
     # Comment before HAI
-    while (self.current_token.type != "HAI_KEYWORD"):
-      self.end()
+    if self.current_token.type == "OBTW_KEYWORD":
+        children.append(self.multilinecomment())
+        # children.append(Node("LINEBREAK"))
+        self.end()
+    if self.current_token.type == "BTW_KEYWORD":
+        children.append(self.comment())
+        # children.append(Node("LINEBREAK"))
+        self.end()
     # HAI
+    
     self.eat("HAI_KEYWORD")
     children.append(Node("HAI_KEYWORD"))
     

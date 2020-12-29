@@ -49,12 +49,17 @@ class Interpreter:
       return False
     
     codeblock = None
-    lineNumber = 1
+    lineNumber = 0
     for node in self.tree.children:
       if (node.type == "CODEBLOCK"):
         codeblock = node
         break
-      lineNumber = lineNumber + 1
+      elif (node.type == "MULTICOMMENT"):
+        lineNumber = lineNumber + int(node.value)
+      elif (node.type == "COMMENT"):
+        lineNumber = lineNumber + 1
+      else:
+        lineNumber = lineNumber + 1
     analyzer.start_analyze(codeblock,lineNumber)
     self.symbol_table = analyzer.symbol_table
     return True
