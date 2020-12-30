@@ -18,7 +18,19 @@ class Application:
 			if not self.lol.symbol_table[key].value:		# check if value if empty
 				sym_table.insert(parent='', index='end', text=key, values=("None"))
 			else:
-				sym_table.insert(parent='', index='end', text=key, values=(self.lol.symbol_table[key].value))
+
+				# handle spaces in treeview, because it would cut spaces if encountered
+				temp1 = ""
+				if " " in self.lol.symbol_table[key].value:
+					temp = self.lol.symbol_table[key].value.split(" ")
+					for i in temp:
+						temp1 = temp1 + i + "\ "
+				else:
+					temp1 = self.lol.symbol_table[key].value
+				
+				
+
+				sym_table.insert(parent='', index='end', text=key, values=(temp1))
 
 	def update_terminal(self, output_text, string):	# update terminal
 		string = str(string)

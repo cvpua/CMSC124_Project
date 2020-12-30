@@ -14,6 +14,8 @@ class Parser:
       raise Exception(f"Syntax Error in line number {self.current_token.line_number}: Expect {token_type} but saw {self.current_token.type}")
     if (len(self.tokens) != 0): 
       self.current_token = self.tokens[0]
+    else: 
+      print("Finished parsing: Tokens is empty")
   
   def parse(self):
     # <program>

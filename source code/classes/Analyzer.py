@@ -11,22 +11,9 @@ class Analyzer:
     self.symbol_table = {"IT": Symbol("NOOB", None)}
     self.output_text = output_text
   
-  def start_analyze(self):
+  def start_analyze(self,codeblock,line_number):
     global lineNumber 
-
-    codeblock = None
-    lineNumber = 0
-    # Getting the codeblock
-    for node in self.tree.children:
-      if (node.type == "CODEBLOCK"):
-        codeblock = node
-        break
-      elif (node.type == "MULTICOMMENT"):
-        lineNumber = lineNumber + int(node.value)
-      elif (node.type == "COMMENT"):
-        lineNumber = lineNumber + 1
-      else:
-        lineNumber = lineNumber + 1
+    lineNumber = line_number
     self.analyze(codeblock)
 
   def analyze(self, codeblock):

@@ -15,6 +15,8 @@ class Interpreter:
     self.symbol_table = {}
   
   def readFile(self):
+    # To do: 
+    # [ ] check if the file type is lol, if not, then print an error
     filename = askopenfilename()
     if filename:
       file = open(filename,'r')
@@ -25,34 +27,58 @@ class Interpreter:
 
   def run_lexer(self):
     if (self.text != ""):
-      # Source Code and Token Expression fed to the Lexer
       lexer = Lexer(self.text, TOK_EXP)
     else:
       raise Exception("FAILED TO RUN THE LEXER: Empty file or set the file first")
-    # Tokenizing the source code using the token expressions and returns the list of tokens
     self.tokens = lexer.tokenize()
   
   def run_parser(self):
+    print("Parsing...")
     if (len(self.tokens) != 0):
-      # The list of tokens is fed to the Parser
       parser = Parser(self.tokens)
     else:
       raise Exception("Parsing Error: The list of tokens is empty")
-    # Returns the root node of the parse tree
     self.tree = parser.parse()
+    return True
   
   def run_analyzer(self, output_text):
     if (self.tree != None):
-      # The parse tree is fed to the analyzer
       analyzer = Analyzer(self.tree, output_text)
     else:
-      raise Exception("Error in Analyzer: The tree is still empty")
-        
-    # Analyzing the the parse tree
-    analyzer.start_analyze()
-    # Returns the symbol table produced by Analyzer
+      print("The tree is still empty")
+      return False
+    
+    codeblock = None
+    lineNumber = 0
+    for node in self.tree.children:
+      if (node.type == "CODEBLOCK"):
+        codeblock = node
+        break
+      elif (node.type == "MULTICOMMENT"):
+        lineNumber = lineNumber + int(node.value)
+      elif (node.type == "COMMENT"):
+        lineNumber = lineNumber + 1
+      else:
+        lineNumber = lineNumber + 1
+    analyzer.start_analyze(codeblock,lineNumber)
     self.symbol_table = analyzer.symbol_table
-    print(self.symbol_table["IT"].value)
+    return True
+  
+  # def interpret(self):
+  #   is_successful = self.run_lexer()
+  #   if (not(is_successful)):
+  #     print("Tokenizing is not successful")
+  #     return False
+
+  #   is_successful = self.run_parser()
+  #   if (not(is_successful)):
+  #     print("Parsing is not successful")
+  #     return False
+    
+  #   is_successful = self.run_analyzer()
+  #   if (not(is_successful)):
+  #     print("Semantic analysis is not successful")
+  #     return False
   
   def print_text(self):
     print(self.text)
@@ -80,3 +106,5 @@ class Interpreter:
     if (iteration == 0):
       print("========END TREE========")
       print("\n")
+    
+  # def print_symbol_table(self):
